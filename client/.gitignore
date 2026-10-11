@@ -1,0 +1,38 @@
+# ==========================================
+# ServiceMan Client .gitignore
+# ==========================================
+
+# 1. Environment Secrets
+.env
+.env.*
+!.env.example
+*.env
+*.env.local
+
+# 2. Dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# 3. Production Build Outputs
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
+
+# 4. Caches & Temp Files
+.cache/
+.eslintcache
+.parcel-cache
+*.tmp
+*.temp
+*.bak
+
+# 5. OS & IDE
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
