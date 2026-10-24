@@ -104,8 +104,8 @@ export default function AdminKycDesk() {
                           className="w-10 h-10 rounded-xl object-cover"
                         />
                         <div>
-                          <span className="font-bold text-slate-900 block">{doc.providerId?.name}</span>
-                          <span className="text-[11px] text-slate-400 block">{doc.providerId?.email} • {doc.providerId?.city}</span>
+                          <span className="font-bold text-slate-900 block">{doc.providerId?.name || 'Verified Professional'}</span>
+                          <span className="text-[11px] text-slate-400 block">{doc.providerId?.email || doc.providerId?.phone || 'Delhi NCR'} • {doc.providerId?.city || 'NCR'}</span>
                         </div>
                       </div>
                     </td>

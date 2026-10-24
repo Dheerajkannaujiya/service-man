@@ -23,9 +23,11 @@ import api from '../../services/api';
 import TrustBadge from '../../components/TrustBadge';
 import StarRating from '../../components/StarRating';
 
+import { INITIAL_SERVICES } from '../../services/mockData';
+
 export default function LandingPage() {
   const navigate = useNavigate();
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState(INITIAL_SERVICES);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -33,11 +35,14 @@ export default function LandingPage() {
     const fetchServices = async () => {
       try {
         const res = await api.get('/customer/services');
-        if (res.data.success) {
+        if (res.data.success && res.data.services?.length > 0) {
           setServices(res.data.services);
+        } else {
+          setServices(INITIAL_SERVICES);
         }
       } catch (err) {
-        console.warn('Failed to fetch services:', err.message);
+        console.warn('Failed to fetch services, using default catalog');
+        setServices(INITIAL_SERVICES);
       }
     };
     fetchServices();

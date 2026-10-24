@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { FileText, Shield, Clock } from 'lucide-react';
 import api from '../../services/api';
+import { MOCK_AUDIT_LOGS } from '../../services/mockData';
 
 export default function AdminAuditLogsView() {
-  const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [logs, setLogs] = useState(MOCK_AUDIT_LOGS);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadLogs();

@@ -82,9 +82,9 @@ export default function AdminAiReviewsView() {
                       }`}
                     >
                       <td className="py-4 px-4">
-                        <span className="font-bold text-slate-900 block">{r.authorId?.name}</span>
+                        <span className="font-bold text-slate-900 block">{r.authorId?.name || 'Verified Customer'}</span>
                         <span className="text-[11px] text-slate-400 block">
-                          → {r.recipientId?.name} ({r.recipientId?.role})
+                          → {r.recipientId?.name || 'Service Partner'} ({r.recipientId?.role || 'provider'})
                         </span>
                       </td>
 

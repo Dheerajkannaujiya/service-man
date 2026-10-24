@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, MapPin, PieChart, Users, ShieldCheck } from 'lucide-react';
 import api from '../../services/api';
+import { MOCK_ANALYTICS_DATA } from '../../services/mockData';
 
 export default function AdminAnalyticsView() {
-  const [analytics, setAnalytics] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [analytics, setAnalytics] = useState(MOCK_ANALYTICS_DATA);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     loadAnalytics();

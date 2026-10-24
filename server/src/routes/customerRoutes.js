@@ -6,6 +6,7 @@ const {
   createServiceRequest,
   getActiveBooking,
   getBookingHistory,
+  getBookingById,
   cancelBooking
 } = require('../controllers/customerController');
 const { protect } = require('../middleware/auth');
@@ -22,6 +23,7 @@ router.use(authorize('customer', 'admin'));
 router.post('/request-service', createServiceRequest);
 router.get('/active-booking', getActiveBooking);
 router.get('/bookings', getBookingHistory);
+router.get('/bookings/:bookingId', getBookingById);
 router.put('/bookings/:bookingId/cancel', cancelBooking);
 
 module.exports = router;

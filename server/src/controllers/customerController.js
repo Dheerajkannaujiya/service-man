@@ -313,3 +313,40 @@ exports.cancelBooking = async (req, res, next) => {
     next(err);
   }
 };
+
+/**
+ * Get single booking by ID
+ */
+exports.getBookingById = async (req, res, next) => {
+  try {
+    const booking = await Booking.findOne({
+      _id: req.params.bookingId,
+      customerId: req.user._id
+    })
+      .populate('providerId', 'name phone avatar city location')
+      .populate('serviceId', 'name category icon basePrice')
+      .populate('customerReview');
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    }
+
+    const providerProfile = await Provider.findOne({ userId: booking.providerId?._id });
+
+    res.json({
+      success: true,
+      booking: {
+        ...booking.toObject(),
+        providerProfile: providerProfile ? {
+          rating: providerProfile.ratingAverage,
+          trustScore: providerProfile.trustScore,
+          hasTrustBadge: providerProfile.hasTrustBadge,
+          hourlyRate: providerProfile.hourlyRate
+        } : null
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+

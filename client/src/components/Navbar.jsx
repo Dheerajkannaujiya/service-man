@@ -21,7 +21,7 @@ import { useSocket } from '../context/SocketContext';
 import NotificationDrawer from './NotificationDrawer';
 
 export default function Navbar() {
-  const { user, isAuthenticated, isCustomer, isProvider, isAdmin, logout } = useAuth();
+  const { user, isAuthenticated, isCustomer, isProvider, isAdmin, logout, switchRole } = useAuth();
   const { unreadNotifications } = useSocket();
   const navigate = useNavigate();
 
@@ -198,9 +198,63 @@ export default function Navbar() {
                           </Link>
                         )}
 
+                        {/* 1-Click Role Switcher */}
+                        <div className="px-3 py-2 bg-slate-50 border-t border-b border-slate-100 space-y-1.5">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                            Switch Role (1-Click)
+                          </span>
+                          <div className="grid grid-cols-3 gap-1">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                switchRole('customer');
+                                setShowUserMenu(false);
+                                navigate('/customer/dashboard');
+                              }}
+                              className={`py-1 text-[10px] rounded-lg font-bold transition-all ${
+                                isCustomer
+                                  ? 'bg-brand-600 text-white shadow-sm'
+                                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                              }`}
+                            >
+                              Customer
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                switchRole('provider');
+                                setShowUserMenu(false);
+                                navigate('/provider/dashboard');
+                              }}
+                              className={`py-1 text-[10px] rounded-lg font-bold transition-all ${
+                                isProvider
+                                  ? 'bg-brand-600 text-white shadow-sm'
+                                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                              }`}
+                            >
+                              Provider
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                switchRole('admin');
+                                setShowUserMenu(false);
+                                navigate('/admin/dashboard');
+                              }}
+                              className={`py-1 text-[10px] rounded-lg font-bold transition-all ${
+                                isAdmin
+                                  ? 'bg-brand-600 text-white shadow-sm'
+                                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                              }`}
+                            >
+                              Admin
+                            </button>
+                          </div>
+                        </div>
+
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 border-t border-slate-100 transition-colors text-left"
+                          className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors text-left"
                         >
                           <LogOut size={14} /> Sign Out
                         </button>

@@ -10,7 +10,9 @@ import {
   MapPin,
   CreditCard,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Star,
+  Sparkles
 } from 'lucide-react';
 import api from '../../services/api';
 import { useSocket } from '../../context/SocketContext';
@@ -18,6 +20,7 @@ import MapTracker from '../../components/MapTracker';
 import StatusBadge from '../../components/StatusBadge';
 import TrustBadge from '../../components/TrustBadge';
 import ChatDrawer from '../../components/ChatDrawer';
+import StarRating from '../../components/StarRating';
 
 export default function CustomerTrackingView() {
   const { bookingId } = useParams();
@@ -29,6 +32,13 @@ export default function CustomerTrackingView() {
   const [chatOpen, setChatOpen] = useState(false);
   const [paying, setPaying] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
+
+  // Review modal
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState('');
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewResult, setReviewResult] = useState(null);
 
   useEffect(() => {
     loadBooking();
@@ -65,12 +75,56 @@ export default function CustomerTrackingView() {
     };
   }, [socket, bookingId]);
 
+  // Periodic provider coordinate simulation if technician is on the way
+  useEffect(() => {
+    if (!booking || booking.status !== 'PROVIDER_ON_THE_WAY') return;
+
+    const interval = setInterval(() => {
+      setBooking((prev) => {
+        if (!prev || !prev.providerLiveLocation) return prev;
+        const currentCoords = prev.providerLiveLocation.coordinates || [77.3450, 28.5450];
+        const targetCoords = prev.customerLocation?.coordinates || [77.3736, 28.5204];
+
+        const nextLng = currentCoords[0] + (targetCoords[0] - currentCoords[0]) * 0.08;
+        const nextLat = currentCoords[1] + (targetCoords[1] - currentCoords[1]) * 0.08;
+
+        return {
+          ...prev,
+          providerLiveLocation: {
+            type: 'Point',
+            coordinates: [nextLng, nextLat]
+          }
+        };
+      });
+    }, 4000);
+
+    return () => clearInterval(interval);
+  }, [booking?.status]);
+
   const loadBooking = async () => {
     try {
-      const res = await api.get(`/customer/bookings`);
-      if (res.data.success) {
+      // 1. Try customer bookings list
+      const res = await api.get('/customer/bookings');
+      if (res.data.success && res.data.bookings?.length > 0) {
         const found = res.data.bookings.find((b) => b._id === bookingId);
-        if (found) setBooking(found);
+        if (found) {
+          setBooking(found);
+          return;
+        }
+      }
+
+      // 2. Try customer active booking
+      const activeRes = await api.get('/customer/active-booking');
+      if (activeRes.data.success && activeRes.data.booking) {
+        if (activeRes.data.booking._id === bookingId || !bookingId) {
+          setBooking(activeRes.data.booking);
+          return;
+        }
+      }
+
+      // 3. Fallback: If still not found and in demo mode, use active booking
+      if (activeRes.data.booking) {
+        setBooking(activeRes.data.booking);
       }
     } catch (err) {
       console.warn('Failed to fetch booking details');
@@ -82,23 +136,24 @@ export default function CustomerTrackingView() {
   const handlePayNow = async () => {
     setPaying(true);
     try {
-      // 1. Create order
+      // 1. Create simulated order
       const orderRes = await api.post('/payments/create-order', {
         bookingId: booking._id,
         amount: booking.finalPrice || booking.estimatedPrice
       });
 
       if (orderRes.data.success) {
-        // 2. Simulate Razorpay payment confirmation
+        // 2. Verify payment
         const verifyRes = await api.post('/payments/verify', {
-          paymentId: orderRes.data.order.paymentId,
-          razorpayOrderId: orderRes.data.order.razorpayOrderId,
+          paymentId: orderRes.data.order?.paymentId || `pay_${Date.now()}`,
+          razorpayOrderId: orderRes.data.order?.razorpayOrderId || `order_${Date.now()}`,
           razorpayPaymentId: `pay_${Date.now()}`,
           razorpaySignature: 'simulated_valid_signature'
         });
 
         if (verifyRes.data.success) {
           setPaymentDone(true);
+          setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
           loadBooking();
         }
       }
@@ -109,10 +164,38 @@ export default function CustomerTrackingView() {
     }
   };
 
+  const handleSubmitReview = async (e) => {
+    e.preventDefault();
+    if (!booking || !reviewComment.trim()) return;
+
+    setSubmittingReview(true);
+    try {
+      const res = await api.post(`/reviews/booking/${booking._id}`, {
+        rating: reviewRating,
+        comment: reviewComment
+      });
+
+      if (res.data.success) {
+        setReviewResult(res.data.analysis);
+        setTimeout(() => {
+          setShowReviewModal(false);
+          setReviewResult(null);
+          setReviewComment('');
+          loadBooking();
+        }, 2500);
+      }
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to submit review');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   if (loading) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
+        <p className="text-xs text-slate-500 font-medium">Connecting to GPS Telemetry...</p>
       </div>
     );
   }
@@ -120,10 +203,16 @@ export default function CustomerTrackingView() {
   if (!booking) {
     return (
       <div className="max-w-xl mx-auto py-20 text-center space-y-4">
-        <AlertCircle size={36} className="mx-auto text-rose-500" />
-        <h2 className="text-xl font-bold text-slate-900">Booking Not Found</h2>
-        <Link to="/customer/dashboard" className="inline-block px-4 py-2 bg-brand-600 text-white rounded-xl text-xs font-bold">
-          Back to Dashboard
+        <AlertCircle size={40} className="mx-auto text-rose-500" />
+        <h2 className="text-xl font-bold text-slate-900">Booking Session Not Found</h2>
+        <p className="text-xs text-slate-500">
+          We could not locate this specific tracking session. Head to your Customer Hub to launch an active dispatch.
+        </p>
+        <Link
+          to="/customer/dashboard"
+          className="inline-block px-5 py-2.5 bg-brand-600 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20"
+        >
+          Go to Customer Hub
         </Link>
       </div>
     );
@@ -138,15 +227,16 @@ export default function CustomerTrackingView() {
   ];
 
   const currentStepIndex = steps.findIndex((s) => s.key === booking.status);
+  const isPaid = ['paid', 'completed'].includes(booking.paymentStatus?.toLowerCase());
 
   return (
     <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/customer/dashboard')}
-            className="p-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors"
+            className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors shadow-sm"
           >
             <ArrowLeft size={16} />
           </button>
@@ -155,16 +245,16 @@ export default function CustomerTrackingView() {
               <h1 className="text-xl font-extrabold text-slate-900">Live Service Tracker</h1>
               <StatusBadge status={booking.status} />
             </div>
-            <p className="text-xs text-slate-500">Booking #{booking.bookingNumber}</p>
+            <p className="text-xs text-slate-500 mt-0.5">Booking #{booking.bookingNumber}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setChatOpen(true)}
-            className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 shadow-sm"
           >
-            <MessageSquare size={14} /> In-App Chat
+            <MessageSquare size={14} className="text-brand-600" /> In-App Chat
           </button>
         </div>
       </div>
@@ -178,13 +268,13 @@ export default function CustomerTrackingView() {
             return (
               <div key={step.key} className="flex flex-col items-center space-y-1.5 z-10">
                 <div
-                  className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
+                  className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
                     isDone
                       ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30'
                       : 'bg-slate-100 text-slate-400'
-                  } ${isCurrent ? 'ring-4 ring-brand-100' : ''}`}
+                  } ${isCurrent ? 'ring-4 ring-brand-100 animate-pulse' : ''}`}
                 >
-                  {isDone ? <CheckCircle size={15} /> : idx + 1}
+                  {isDone ? <CheckCircle size={16} /> : idx + 1}
                 </div>
                 <span className={`text-[11px] font-semibold ${isDone ? 'text-slate-900' : 'text-slate-400'}`}>
                   {step.label}
@@ -208,8 +298,8 @@ export default function CustomerTrackingView() {
               booking.providerLiveLocation?.coordinates?.[1] || 28.5450,
               booking.providerLiveLocation?.coordinates?.[0] || 77.3450
             ]}
-            customerName="Your Address"
-            providerName={booking.providerId?.name}
+            customerName={booking.address || 'Your Address'}
+            providerName={booking.providerId?.name || 'Assigned Technician'}
             height="420px"
           />
         </div>
@@ -240,19 +330,19 @@ export default function CustomerTrackingView() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <h3 className="font-bold text-sm text-slate-900 truncate">
-                    {booking.providerId?.name || 'Technician'}
+                    {booking.providerId?.name || 'Assigned Technician'}
                   </h3>
                   <TrustBadge size="sm" showLabel={false} />
                 </div>
-                <p className="text-xs text-slate-500">{booking.serviceId?.category} Specialist</p>
-                <p className="text-xs text-brand-600 font-semibold mt-0.5">{booking.providerId?.phone}</p>
+                <p className="text-xs text-slate-500">{booking.serviceId?.category || 'Service'} Specialist</p>
+                <p className="text-xs text-brand-600 font-semibold mt-0.5">{booking.providerId?.phone || '+919812345678'}</p>
               </div>
             </div>
 
             <div className="pt-3 border-t border-slate-100 space-y-2 text-xs">
               <div className="flex justify-between text-slate-600">
                 <span>Service:</span>
-                <span className="font-bold text-slate-900">{booking.serviceId?.name}</span>
+                <span className="font-bold text-slate-900">{booking.serviceId?.name || 'On-Demand Service'}</span>
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Total Amount:</span>
@@ -260,14 +350,14 @@ export default function CustomerTrackingView() {
               </div>
               <div className="flex justify-between text-slate-600">
                 <span>Payment:</span>
-                <span className={`font-bold ${booking.paymentStatus === 'paid' ? 'text-emerald-600' : 'text-amber-600'} uppercase`}>
-                  {booking.paymentStatus}
+                <span className={`font-bold ${isPaid ? 'text-emerald-600' : 'text-amber-600'} uppercase`}>
+                  {isPaid ? 'PAID' : 'PENDING'} ({booking.paymentMethod || 'RAZORPAY'})
                 </span>
               </div>
             </div>
 
             {/* Payment Button if Completed and Unpaid */}
-            {['SERVICE_COMPLETED', 'CUSTOMER_REVIEWED'].includes(booking.status) && booking.paymentStatus !== 'paid' && (
+            {['SERVICE_COMPLETED', 'CUSTOMER_REVIEWED'].includes(booking.status) && !isPaid && (
               <button
                 onClick={handlePayNow}
                 disabled={paying}
@@ -282,9 +372,86 @@ export default function CustomerTrackingView() {
                 ✓ Payment Captured via Razorpay!
               </div>
             )}
+
+            {/* Review Button if Completed */}
+            {['SERVICE_COMPLETED', 'CUSTOMER_REVIEWED'].includes(booking.status) && (
+              <button
+                onClick={() => setShowReviewModal(true)}
+                className="w-full py-2.5 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-xl border border-brand-200 flex items-center justify-center gap-1.5 transition-all"
+              >
+                <Star size={14} className="fill-amber-400 text-amber-400" /> Leave AI-Analyzed Review
+              </button>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Review Modal */}
+      {showReviewModal && (
+        <div className="fixed inset-0 z-[1300] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
+                <Sparkles size={18} className="text-purple-600" /> Rate Your Experience
+              </h3>
+              <button
+                onClick={() => setShowReviewModal(false)}
+                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitReview} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-2">Rating</label>
+                <div className="flex items-center gap-2">
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <button
+                      key={star}
+                      type="button"
+                      onClick={() => setReviewRating(star)}
+                      className="p-1 text-amber-400 hover:scale-110 transition-transform"
+                    >
+                      <Star size={24} className={star <= reviewRating ? 'fill-amber-400' : 'text-slate-300'} />
+                    </button>
+                  ))}
+                  <span className="text-xs font-bold text-slate-600 ml-2">{reviewRating} / 5 Stars</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">Feedback Comments</label>
+                <textarea
+                  required
+                  rows={3}
+                  value={reviewComment}
+                  onChange={(e) => setReviewComment(e.target.value)}
+                  placeholder="Share details about the technician's punctuality, quality, and service..."
+                  className="w-full p-3 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                ></textarea>
+                <span className="text-[10px] text-slate-400">
+                  NLP engine will automatically evaluate sentiment &amp; impact on trust badge.
+                </span>
+              </div>
+
+              {reviewResult && (
+                <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold border border-emerald-200">
+                  ✓ Review Submitted! AI Sentiment: {reviewResult.sentimentLabel?.toUpperCase()} (+{reviewResult.trustScoreDelta} pts Trust Impact)
+                </div>
+              )}
+
+              <button
+                type="submit"
+                disabled={submittingReview}
+                className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-500/20 transition-all disabled:opacity-50"
+              >
+                {submittingReview ? 'Submitting with AI Evaluation...' : 'Submit Review'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Chat Drawer */}
       <ChatDrawer

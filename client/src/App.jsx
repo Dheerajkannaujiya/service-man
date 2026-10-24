@@ -73,6 +73,14 @@ export default function App() {
                   }
                 />
                 <Route
+                  path="/customer/track"
+                  element={
+                    <ProtectedRoute allowedRoles={['customer', 'admin']}>
+                      <CustomerTrackingView />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
                   path="/customer/track/:bookingId"
                   element={
                     <ProtectedRoute allowedRoles={['customer', 'admin']}>

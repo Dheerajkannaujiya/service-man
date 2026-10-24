@@ -98,10 +98,10 @@ export default function AdminComplaintsView() {
                 {complaints.map((c) => (
                   <tr key={c._id} className="hover:bg-slate-50/60 transition-colors">
                     <td className="py-4 px-4 font-semibold text-slate-900">
-                      {c.complainantId?.name} ({c.complainantRole})
+                      {c.complainantId?.name || 'Customer'} ({c.complainantRole || c.complainantId?.role || 'customer'})
                     </td>
                     <td className="py-4 px-4 font-semibold text-rose-700">
-                      {c.respondentId?.name} ({c.respondentId?.role})
+                      {c.respondentId?.name || c.reportedUserId?.name || 'Technician'} ({c.respondentId?.role || c.reportedUserId?.role || 'provider'})
                     </td>
                     <td className="py-4 px-4 uppercase font-medium">
                       {c.category.replace(/_/g, ' ')}

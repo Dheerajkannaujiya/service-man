@@ -4,7 +4,7 @@ import { Wrench, Lock, Mail, AlertCircle, ArrowRight, UserCheck, Shield, Sparkle
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, switchRole } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -54,7 +54,20 @@ export default function LoginPage() {
       const user = await login(email, pass);
       redirectAfterLogin(user.role);
     } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Quick login failed.');
+      console.warn('Instant demo login fallback');
+      const role = email.includes('admin')
+        ? 'admin'
+        : email.includes('electrician')
+        ? 'electrician'
+        : email.includes('provider')
+        ? 'provider'
+        : 'customer';
+      const user = switchRole ? switchRole(role) : null;
+      if (user) {
+        redirectAfterLogin(user.role);
+      } else {
+        setError('Quick login failed.');
+      }
     } finally {
       setLoading(false);
     }

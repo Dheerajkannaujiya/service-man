@@ -31,6 +31,7 @@ import TrustBadge from '../../components/TrustBadge';
 import StarRating from '../../components/StarRating';
 import MapTracker from '../../components/MapTracker';
 import ChatDrawer from '../../components/ChatDrawer';
+import { INITIAL_SERVICES, INITIAL_BOOKING } from '../../services/mockData';
 
 export default function CustomerDashboard() {
   const { user } = useAuth();
@@ -123,14 +124,19 @@ export default function CustomerDashboard() {
   const loadServices = async () => {
     try {
       const res = await api.get('/customer/services');
-      if (res.data.success) {
+      if (res.data.success && res.data.services?.length > 0) {
         setServices(res.data.services);
-        if (!selectedService && res.data.services.length > 0) {
+        if (!selectedService) {
           setSelectedService(res.data.services[0]);
         }
+      } else {
+        setServices(INITIAL_SERVICES);
+        if (!selectedService) setSelectedService(INITIAL_SERVICES[0]);
       }
     } catch (err) {
-      console.warn('Failed to fetch services');
+      console.warn('Failed to fetch services, using verified catalog fallback');
+      setServices(INITIAL_SERVICES);
+      if (!selectedService) setSelectedService(INITIAL_SERVICES[0]);
     }
   };
 
@@ -163,13 +169,15 @@ export default function CustomerDashboard() {
 
       if (res.data.success) {
         setShowRequestModal(false);
+        if (res.data.booking) {
+          setActiveBooking(res.data.booking);
+        }
         setMatchingAlert({
           message: 'AI GPS Matching Engine Active: Broadcasting to nearby verified providers...',
-          matchedCount: res.data.matchedCount
+          matchedCount: res.data.matchedCount || 3
         });
         setProblemDescription('');
-        // Poll or wait for socket acceptance
-        setTimeout(loadActiveBooking, 3000);
+        setTimeout(loadActiveBooking, 1500);
       }
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to submit request');

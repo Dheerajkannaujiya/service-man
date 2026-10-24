@@ -197,7 +197,7 @@ export default function CustomerBookings() {
                     </button>
                   )}
 
-                  {['REQUESTED', 'ACCEPTED', 'PROVIDER_ON_THE_WAY'].includes(b.status) && (
+                  {['REQUESTED', 'ACCEPTED', 'PROVIDER_ON_THE_WAY', 'ARRIVED', 'SERVICE_STARTED'].includes(b.status) && (
                     <Link
                       to={`/customer/track/${b._id}`}
                       className="px-3.5 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold shadow-sm"

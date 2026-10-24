@@ -2,23 +2,27 @@ import React, { useState, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Wrench, Zap, Sparkles, Stethoscope, HeartHandshake, GraduationCap, Droplets, Paintbrush, Search, ChevronRight, Check } from 'lucide-react';
 import api from '../../services/api';
+import { INITIAL_SERVICES } from '../../services/mockData';
 
 export default function ServicesPage() {
   const [searchParams] = useSearchParams();
-  const [services, setServices] = useState([]);
+  const [services, setServices] = useState(INITIAL_SERVICES);
   const [category, setCategory] = useState(searchParams.get('category') || 'All');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchServices = async () => {
       try {
         const res = await api.get('/customer/services');
-        if (res.data.success) {
+        if (res.data.success && res.data.services?.length > 0) {
           setServices(res.data.services);
+        } else {
+          setServices(INITIAL_SERVICES);
         }
       } catch (err) {
-        console.warn('Failed to fetch services:', err.message);
+        console.warn('Failed to fetch services, using default catalog');
+        setServices(INITIAL_SERVICES);
       } finally {
         setLoading(false);
       }

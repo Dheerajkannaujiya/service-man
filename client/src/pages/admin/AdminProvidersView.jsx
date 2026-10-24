@@ -156,25 +156,26 @@ export default function AdminProvidersView() {
               </thead>
               <tbody className="divide-y divide-slate-100 text-slate-700">
                 {providers.map((p) => {
-                  const isSuspended = p.userId?.isSuspended;
-                  const isBanned = p.userId?.isBanned;
+                  const userData = p.userId || p.user || {};
+                  const isSuspended = userData.isSuspended;
+                  const isBanned = userData.isBanned;
 
                   return (
                     <tr key={p._id} className="hover:bg-slate-50/60 transition-colors">
                       <td className="py-4 px-4">
                         <div className="flex items-center gap-3">
                           <img
-                            src={p.userId?.avatar || 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=80&q=80'}
-                            alt={p.userId?.name}
+                            src={userData.avatar || 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=80&q=80'}
+                            alt={userData.name}
                             className="w-10 h-10 rounded-xl object-cover"
                           />
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-slate-900 block">{p.userId?.name}</span>
+                              <span className="font-bold text-slate-900 block">{userData.name || 'Service Partner'}</span>
                               {p.hasTrustBadge && <TrustBadge size="sm" showLabel={false} />}
                             </div>
                             <span className="text-[11px] text-slate-400 block">
-                              {p.userId?.email} • {p.userId?.city}
+                              {userData.email || userData.phone || 'Noida (NCR)'} • {userData.city || 'NCR'}
                             </span>
                           </div>
                         </div>
@@ -202,9 +203,9 @@ export default function AdminProvidersView() {
                       </td>
 
                       <td className="py-4 px-4">
-                        {p.userId?.warningCount > 0 ? (
+                        {(userData.warningCount || 0) > 0 ? (
                           <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                            {p.userId.warningCount} Warning(s)
+                            {userData.warningCount} Warning(s)
                           </span>
                         ) : (
                           <span className="text-slate-400 text-[11px]">Clean Record</span>

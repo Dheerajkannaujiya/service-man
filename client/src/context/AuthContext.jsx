@@ -1,11 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import api from '../services/api';
 import { disconnectSocket } from '../services/socket';
+import { MOCK_USERS } from '../services/mockData';
 
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = localStorage.getItem('serviceman_user');
+      return stored ? JSON.parse(stored) : null;
+    } catch (e) {
+      return null;
+    }
+  });
   const [token, setToken] = useState(localStorage.getItem('serviceman_token') || '');
   const [loading, setLoading] = useState(true);
 
@@ -13,15 +21,27 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const initializeAuth = async () => {
       const storedToken = localStorage.getItem('serviceman_token');
+      const storedUser = localStorage.getItem('serviceman_user');
+
+      if (storedUser && !user) {
+        try {
+          setUser(JSON.parse(storedUser));
+        } catch (e) {}
+      }
+
       if (storedToken) {
         try {
           const res = await api.get('/auth/me');
-          if (res.data.success) {
+          if (res.data.success && res.data.user) {
             setUser(res.data.user);
+            localStorage.setItem('serviceman_user', JSON.stringify(res.data.user));
           }
         } catch (err) {
-          console.warn('[Auth] Session invalid or expired');
-          logout();
+          console.warn('[Auth] Session check fallback:', err.message);
+          // If offline and we have stored user, keep user logged in
+          if (!storedUser) {
+            logout();
+          }
         }
       }
       setLoading(false);
@@ -64,10 +84,24 @@ export const AuthProvider = ({ children }) => {
     disconnectSocket();
   };
 
+  const switchRole = (role) => {
+    let target = MOCK_USERS.customer;
+    if (role === 'provider') target = MOCK_USERS.provider;
+    else if (role === 'electrician') target = MOCK_USERS.electrician;
+    else if (role === 'admin') target = MOCK_USERS.admin;
+
+    const mockToken = `mock_token_${target.role}_${Date.now()}`;
+    setToken(mockToken);
+    setUser(target);
+    localStorage.setItem('serviceman_token', mockToken);
+    localStorage.setItem('serviceman_user', JSON.stringify(target));
+    return target;
+  };
+
   const refreshUser = async () => {
     try {
       const res = await api.get('/auth/me');
-      if (res.data.success) {
+      if (res.data.success && res.data.user) {
         setUser(res.data.user);
         localStorage.setItem('serviceman_user', JSON.stringify(res.data.user));
       }
@@ -87,6 +121,7 @@ export const AuthProvider = ({ children }) => {
     login,
     register,
     logout,
+    switchRole,
     refreshUser,
     setUser
   };

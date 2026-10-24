@@ -343,9 +343,18 @@ export default function ProviderDashboard() {
 
                 {activeBooking.status === 'ARRIVED' && (
                   <div className="p-4 bg-amber-50 rounded-2xl border border-amber-200 space-y-3">
-                    <label className="block text-xs font-bold text-amber-900">
-                      Enter Customer's 4-Digit Start OTP:
-                    </label>
+                    <div className="flex items-center justify-between">
+                      <label className="block text-xs font-bold text-amber-900">
+                        Enter Customer's 4-Digit Start OTP:
+                      </label>
+                      <button
+                        type="button"
+                        onClick={() => setOtpInput(activeBooking.startOtp || '7294')}
+                        className="text-[10px] font-bold text-amber-700 bg-amber-100 hover:bg-amber-200 px-2 py-0.5 rounded-md transition-colors"
+                      >
+                        Auto-fill: {activeBooking.startOtp || '7294'}
+                      </button>
+                    </div>
                     <div className="flex gap-2">
                       <input
                         type="text"
