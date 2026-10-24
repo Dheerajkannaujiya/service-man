@@ -22,11 +22,12 @@ import {
 import api from '../../services/api';
 import TrustBadge from '../../components/TrustBadge';
 import StarRating from '../../components/StarRating';
-
+import { useAuth } from '../../context/AuthContext';
 import { INITIAL_SERVICES } from '../../services/mockData';
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const { switchRole, user } = useAuth();
   const [services, setServices] = useState(INITIAL_SERVICES);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
@@ -102,12 +103,52 @@ export default function LandingPage() {
                     className="w-full text-xs sm:text-sm py-2 text-slate-800 outline-none placeholder:text-slate-400"
                   />
                 </div>
-                <Link
-                  to="/services"
+                <button
+                  onClick={() => {
+                    switchRole('customer');
+                    navigate('/customer/dashboard');
+                  }}
                   className="w-full sm:w-auto px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-brand-500/20 transition-all flex items-center justify-center gap-2 shrink-0"
                 >
-                  Book Service <ArrowRight size={15} />
-                </Link>
+                  Book Instant Service <ArrowRight size={15} />
+                </button>
+              </div>
+
+              {/* Instant Interactive Quick-Start Links */}
+              <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                <span className="text-xs font-bold text-slate-700">Quick Test Flows:</span>
+                <button
+                  onClick={() => {
+                    switchRole('customer');
+                    navigate('/customer/track/mock_booking_001');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+                  Customer Live GPS Track
+                </button>
+
+                <button
+                  onClick={() => {
+                    switchRole('provider');
+                    navigate('/provider/dashboard');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  <Wrench size={13} className="text-amber-600" />
+                  Provider Dispatch &amp; OTP Desk
+                </button>
+
+                <button
+                  onClick={() => {
+                    switchRole('admin');
+                    navigate('/admin/dashboard');
+                  }}
+                  className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                >
+                  <ShieldCheck size={13} className="text-purple-600" />
+                  Admin KYC &amp; AI Radar
+                </button>
               </div>
 
               {/* Trust Indicators */}
@@ -127,29 +168,34 @@ export default function LandingPage() {
               </div>
             </div>
 
-            {/* Right Card Mockup */}
+            {/* Right Card Mockup - Interactive Simulation Center */}
             <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-5">
+              <div className="relative mx-auto max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                    Live Dispatch Simulator
+                  <div className="flex items-center gap-2">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
+                      Live Dispatch Station
+                    </span>
+                  </div>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                    ACTIVE NOW
                   </span>
-                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
                 </div>
 
-                <div className="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 border border-slate-100">
+                <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50/50 border border-slate-200">
                   <img
                     src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80"
                     alt="Vikram Singh"
-                    className="w-12 h-12 rounded-xl object-cover"
+                    className="w-13 h-13 rounded-2xl object-cover border-2 border-brand-500 shadow-sm"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="font-bold text-sm text-slate-900 truncate">Vikram Singh</h4>
+                      <h4 className="font-extrabold text-sm text-slate-900 truncate">Vikram Singh</h4>
                       <TrustBadge size="sm" showLabel={false} />
                     </div>
-                    <p className="text-xs text-slate-500">Auto Mechanic • 8 Yrs Exp</p>
-                    <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-xs text-slate-600 font-medium">Auto Mechanic Pro • 8 Yrs Exp</p>
+                    <div className="flex items-center gap-2 mt-1">
                       <StarRating rating={4.9} size={12} showScore />
                       <span className="text-[11px] text-slate-400">• 62 Completed</span>
                     </div>
@@ -157,34 +203,53 @@ export default function LandingPage() {
                 </div>
 
                 {/* Radar matching animation mock */}
-                <div className="p-4 rounded-2xl bg-brand-50/70 border border-brand-100 text-xs space-y-2">
-                  <div className="flex items-center justify-between text-brand-900 font-semibold">
-                    <span>GPS Matching Distance</span>
-                    <span>3.2 km away</span>
+                <div className="p-4 rounded-2xl bg-brand-50/80 border border-brand-200 text-xs space-y-2">
+                  <div className="flex items-center justify-between text-brand-950 font-bold">
+                    <span>GPS Proximity</span>
+                    <span className="text-brand-600 font-extrabold">1.2 km away (Noida Sec 62)</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-600">
                     <span>Estimated Arrival</span>
-                    <span className="font-bold text-slate-900">12 mins</span>
+                    <span className="font-bold text-slate-900">8 mins</span>
                   </div>
                   <div className="flex items-center justify-between text-slate-600">
-                    <span>AI Trust Score</span>
-                    <span className="font-bold text-emerald-600">92 / 100 (Badge Eligible)</span>
+                    <span>AI Review Trust Score</span>
+                    <span className="font-bold text-emerald-600">98.4 / 100 (Top Tier)</span>
                   </div>
                 </div>
 
-                {/* Quick login helper card */}
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900">
-                  <p className="font-bold mb-1">⚡ Quick Demo Accounts Available:</p>
-                  <p className="text-[11px] text-amber-800">
-                    Sign in with demo credentials on the login page to test Customer, Provider, or Admin workflows!
-                  </p>
-                  <div className="flex gap-2 mt-2">
-                    <Link
-                      to="/login"
-                      className="px-3 py-1 bg-amber-600 text-white rounded-lg font-semibold text-[11px] hover:bg-amber-700"
+                {/* 1-Click Interactive Buttons */}
+                <div className="pt-2 space-y-2">
+                  <button
+                    onClick={() => {
+                      switchRole('customer');
+                      navigate('/customer/track/mock_booking_001');
+                    }}
+                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
+                  >
+                    <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
+                    Launch Live GPS Moving Tracker →
+                  </button>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => {
+                        switchRole('provider');
+                        navigate('/provider/dashboard');
+                      }}
+                      className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors text-center"
                     >
-                      Go to Demo Logins →
-                    </Link>
+                      Provider Job View
+                    </button>
+                    <button
+                      onClick={() => {
+                        switchRole('admin');
+                        navigate('/admin/dashboard');
+                      }}
+                      className="py-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold text-xs border border-purple-200 transition-colors text-center"
+                    >
+                      Admin Dashboard
+                    </button>
                   </div>
                 </div>
               </div>
@@ -261,12 +326,15 @@ export default function LandingPage() {
                     <span className="text-base font-extrabold text-slate-900">₹{service.basePrice}</span>
                   </div>
 
-                  <Link
-                    to={`/customer/dashboard?serviceId=${service._id}`}
+                  <button
+                    onClick={() => {
+                      switchRole('customer');
+                      navigate(`/customer/dashboard?serviceId=${service._id}`);
+                    }}
                     className="px-3.5 py-2 rounded-xl bg-brand-50 hover:bg-brand-600 text-brand-700 hover:text-white font-semibold text-xs transition-colors flex items-center gap-1"
                   >
                     Book Now <ChevronRight size={14} />
-                  </Link>
+                  </button>
                 </div>
               </div>
             </div>

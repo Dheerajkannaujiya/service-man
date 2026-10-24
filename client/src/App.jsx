@@ -5,6 +5,7 @@ import { SocketProvider } from './context/SocketContext';
 
 // Components
 import Navbar from './components/Navbar';
+import DemoControlBar from './components/DemoControlBar';
 import Footer from './components/Footer';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -43,6 +44,7 @@ export default function App() {
       <AuthProvider>
         <SocketProvider>
           <div className="flex flex-col min-h-screen">
+            <DemoControlBar />
             <Navbar />
             <main className="flex-1">
               <Routes>

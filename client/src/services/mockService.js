@@ -90,6 +90,19 @@ export const initMockStore = () => {
   }
 };
 
+export const resetMockStore = () => {
+  try {
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith(STORAGE_PREFIX) || key.startsWith('serviceman_')) {
+        localStorage.removeItem(key);
+      }
+    });
+    initMockStore();
+  } catch (e) {
+    console.error('Failed to reset mock store', e);
+  }
+};
+
 // Call once on module load
 initMockStore();
 
