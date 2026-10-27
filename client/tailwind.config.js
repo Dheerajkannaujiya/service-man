@@ -8,6 +8,22 @@ export default {
   theme: {
     extend: {
       colors: {
+        cyber: {
+          cyan: '#00F2FE',
+          blue: '#4FACFE',
+          indigo: '#6366F1',
+          emerald: '#10B981',
+          violet: '#8B5CF6',
+          amber: '#F59E0B',
+          rose: '#F43F5E'
+        },
+        dark: {
+          base: '#080B11',
+          card: '#0E1424',
+          panel: '#131B30',
+          elevated: '#1A243D',
+          border: 'rgba(255, 255, 255, 0.08)'
+        },
         brand: {
           50: '#eef6ff',
           100: '#d9eaff',
@@ -20,31 +36,28 @@ export default {
           800: '#173cb6',
           900: '#18368f',
           950: '#122257'
-        },
-        accent: {
-          amber: '#f59e0b',
-          emerald: '#10b981',
-          rose: '#f43f5e',
-          cyan: '#06b6d4',
-          violet: '#8b5cf6'
         }
       },
       fontFamily: {
-        sans: ['Outfit', 'Inter', 'system-ui', 'sans-serif'],
+        sans: ['"Gilroy"', '"Gilroy-Medium"', '"Plus Jakarta Sans"', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['"Gilroy-Bold"', '"Gilroy"', '"Gilroy-Heavy"', 'system-ui', '-apple-system', 'sans-serif'],
+        heading: ['"Gilroy-Bold"', '"Gilroy"', '"Gilroy-Heavy"', 'sans-serif'],
+        mono: ['"JetBrains Mono"', 'monospace'],
       },
       boxShadow: {
-        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.08)',
-        'glow': '0 0 20px rgba(50, 126, 255, 0.35)',
-        'glow-emerald': '0 0 20px rgba(16, 185, 129, 0.35)'
+        'glow-cyan': '0 0 25px rgba(0, 242, 254, 0.35)',
+        'glow-indigo': '0 0 25px rgba(99, 102, 241, 0.35)',
+        'glow-emerald': '0 0 25px rgba(16, 185, 129, 0.35)',
+        'glass-card': '0 20px 40px -15px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1)'
       },
       animation: {
         'pulse-fast': 'pulse 1.2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-        'ripple': 'ripple 2s linear infinite',
+        'shimmer': 'shimmer 2.5s linear infinite',
       },
       keyframes: {
-        ripple: {
-          '0%': { transform: 'scale(0.8)', opacity: '1' },
-          '100%': { transform: 'scale(2.4)', opacity: '0' }
+        shimmer: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(100%)' },
         }
       }
     },

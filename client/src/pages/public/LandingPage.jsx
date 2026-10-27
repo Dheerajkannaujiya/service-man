@@ -17,7 +17,11 @@ import {
   ArrowRight,
   ChevronRight,
   ShieldAlert,
-  Cpu
+  Cpu,
+  Layers,
+  CreditCard,
+  Navigation,
+  Activity
 } from 'lucide-react';
 import api from '../../services/api';
 import TrustBadge from '../../components/TrustBadge';
@@ -50,57 +54,62 @@ export default function LandingPage() {
   }, []);
 
   const categoryIcons = {
-    Mechanic: <Wrench size={22} className="text-blue-600" />,
-    Electrician: <Zap size={22} className="text-amber-500" />,
-    Homemaker: <Sparkles size={22} className="text-purple-500" />,
-    Doctor: <Stethoscope size={22} className="text-rose-500" />,
-    Caretaker: <HeartHandshake size={22} className="text-emerald-500" />,
-    Tutor: <GraduationCap size={22} className="text-cyan-500" />,
-    Plumber: <Droplets size={22} className="text-sky-500" />,
-    Painter: <Paintbrush size={22} className="text-indigo-500" />
+    Mechanic: <Wrench size={20} className="text-indigo-400" />,
+    Electrician: <Zap size={20} className="text-amber-400" />,
+    Homemaker: <Sparkles size={20} className="text-purple-400" />,
+    Doctor: <Stethoscope size={20} className="text-rose-400" />,
+    Caretaker: <HeartHandshake size={20} className="text-emerald-400" />,
+    Tutor: <GraduationCap size={20} className="text-cyan-400" />,
+    Plumber: <Droplets size={20} className="text-sky-400" />,
+    Painter: <Paintbrush size={20} className="text-pink-400" />
   };
 
   const filteredServices = services.filter((s) => {
     const matchCategory = selectedCategory === 'All' || s.category === selectedCategory;
-    const matchSearch = s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    const matchSearch =
+      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       s.description.toLowerCase().includes(searchQuery.toLowerCase());
     return matchCategory && matchSearch;
   });
 
   return (
-    <div className="space-y-20 pb-20">
+    <div className="space-y-24 pb-24 text-slate-100 overflow-hidden relative">
+      {/* Background Radial Glow Lights */}
+      <div className="glow-spot-blue top-[-100px] left-[-150px]"></div>
+      <div className="glow-spot-teal top-[20%] right-[-100px]"></div>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-12 pb-20 lg:pt-20 lg:pb-28 bg-gradient-to-b from-brand-50/60 via-white to-slate-50">
+      <section className="relative pt-12 pb-16 lg:pt-20 lg:pb-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             {/* Left Content */}
-            <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-100 text-brand-700 text-xs font-bold border border-blue-200">
-                <Cpu size={14} className="text-brand-600 animate-pulse" />
-                AI-Powered GPS Matching • Verified NCR Professionals
+            <div className="lg:col-span-7 space-y-7 text-center lg:text-left">
+              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-indigo-500/10 text-indigo-300 text-xs font-bold border border-indigo-500/30 shadow-lg shadow-indigo-500/10">
+                <Cpu size={14} className="text-cyan-400 animate-pulse" />
+                <span>Next-Gen On-Demand Telemetry • NCR Service Grid</span>
               </div>
 
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight leading-[1.1]">
-                Expert Help At Your Doorstep,{' '}
-                <span className="bg-gradient-to-r from-brand-600 to-blue-500 bg-clip-text text-transparent">
-                  In 15 Minutes.
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1] font-['Outfit']">
+                On-Demand Services,{' '}
+                <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-cyan-400 bg-clip-text text-transparent">
+                  Dispatched in 15 Minutes.
                 </span>
               </h1>
 
-              <p className="text-slate-600 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0">
-                From emergency auto repairs and skilled electricians to trained caretakers and home cleaning. Every professional is 100% KYC background-verified, monitored by our AI Review Trust engine.
+              <p className="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl mx-auto lg:mx-0 font-normal">
+                Connecting homes and enterprises with top-tier vetted mechanics, certified electricians, trained homemakers, and doctors. Powered by live GPS tracking, Razorpay secure escrow, and AI fraud protection.
               </p>
 
               {/* Quick Search / CTA */}
-              <div className="bg-white p-2 rounded-2xl shadow-xl border border-slate-200/80 flex flex-col sm:flex-row items-center gap-2 max-w-xl mx-auto lg:mx-0">
-                <div className="flex items-center gap-2 px-3 flex-1 w-full">
-                  <MapPin size={18} className="text-brand-600 shrink-0" />
+              <div className="glass-card p-2 rounded-2xl flex flex-col sm:flex-row items-center gap-2 max-w-xl mx-auto lg:mx-0">
+                <div className="flex items-center gap-2.5 px-3 flex-1 w-full">
+                  <MapPin size={18} className="text-indigo-400 shrink-0" />
                   <input
                     type="text"
                     placeholder="Search mechanic, electrician, cleaner..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-xs sm:text-sm py-2 text-slate-800 outline-none placeholder:text-slate-400"
+                    className="w-full text-xs sm:text-sm py-2 bg-transparent text-slate-100 outline-none placeholder:text-slate-500"
                   />
                 </div>
                 <button
@@ -108,24 +117,24 @@ export default function LandingPage() {
                     switchRole('customer');
                     navigate('/customer/dashboard');
                   }}
-                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-semibold text-xs sm:text-sm shadow-md shadow-brand-500/20 transition-all flex items-center justify-center gap-2 shrink-0"
+                  className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs sm:text-sm shadow-lg shadow-indigo-500/30 transition-all flex items-center justify-center gap-2 shrink-0 btn-shimmer"
                 >
-                  Book Instant Service <ArrowRight size={15} />
+                  Book Instant Dispatch <ArrowRight size={15} />
                 </button>
               </div>
 
-              {/* Instant Interactive Quick-Start Links */}
+              {/* Instant Interactive Quick-Start Links for Testing */}
               <div className="pt-2 flex flex-wrap items-center justify-center lg:justify-start gap-2">
-                <span className="text-xs font-bold text-slate-700">Quick Test Flows:</span>
+                <span className="text-xs font-bold text-slate-400">1-Click Test Flows:</span>
                 <button
                   onClick={() => {
                     switchRole('customer');
                     navigate('/customer/track/mock_booking_001');
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                  className="px-3 py-1.5 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
                 >
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                  Customer Live GPS Track
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                  Live GPS Tracking View
                 </button>
 
                 <button
@@ -133,10 +142,10 @@ export default function LandingPage() {
                     switchRole('provider');
                     navigate('/provider/dashboard');
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                  className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
                 >
-                  <Wrench size={13} className="text-amber-600" />
-                  Provider Dispatch &amp; OTP Desk
+                  <Wrench size={13} className="text-amber-400" />
+                  Provider Dispatch &amp; OTP
                 </button>
 
                 <button
@@ -144,91 +153,91 @@ export default function LandingPage() {
                     switchRole('admin');
                     navigate('/admin/dashboard');
                   }}
-                  className="px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 border border-purple-300 text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm"
+                  className="px-3 py-1.5 rounded-xl bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 border border-purple-500/30 text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
                 >
-                  <ShieldCheck size={13} className="text-purple-600" />
-                  Admin KYC &amp; AI Radar
+                  <ShieldCheck size={13} className="text-purple-400" />
+                  Admin HQ &amp; AI Radar
                 </button>
               </div>
 
-              {/* Trust Indicators */}
-              <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-500">
+              {/* Trust Badges Bar */}
+              <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-slate-400">
                 <div className="flex items-center gap-1.5 font-medium">
-                  <ShieldCheck size={16} className="text-emerald-500" />
-                  Govt. ID &amp; Criminal Check
+                  <ShieldCheck size={16} className="text-emerald-400" />
+                  100% Aadhaar &amp; Police Verified
                 </div>
                 <div className="flex items-center gap-1.5 font-medium">
-                  <Clock size={16} className="text-blue-500" />
-                  Average 15-min ETA
+                  <Clock size={16} className="text-indigo-400" />
+                  Under 15-Min Guaranteed ETA
                 </div>
                 <div className="flex items-center gap-1.5 font-medium">
-                  <Star size={16} className="text-amber-400 fill-amber-400" />
-                  4.8/5 Rated Across 10k+ Jobs
+                  <CreditCard size={16} className="text-cyan-400" />
+                  Razorpay Escrow Protected
                 </div>
               </div>
             </div>
 
-            {/* Right Card Mockup - Interactive Simulation Center */}
+            {/* Right Card Mockup - Interactive Station */}
             <div className="lg:col-span-5 relative">
-              <div className="relative mx-auto max-w-md bg-white rounded-3xl p-6 shadow-2xl border border-slate-100 space-y-4">
+              <div className="relative mx-auto max-w-md glass-card rounded-3xl p-6 shadow-2xl border border-slate-700/70 space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span className="text-xs font-extrabold text-slate-800 uppercase tracking-wider">
-                      Live Dispatch Station
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)] animate-pulse"></span>
+                    <span className="text-xs font-extrabold text-white uppercase tracking-wider">
+                      Live Telemetry Terminal
                     </span>
                   </div>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                    ACTIVE NOW
+                  <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold">
+                    GPS CONNECTED
                   </span>
                 </div>
 
-                <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-gradient-to-r from-slate-50 to-blue-50/50 border border-slate-200">
+                <div className="flex items-center gap-3.5 p-3.5 rounded-2xl bg-slate-800/80 border border-slate-700">
                   <img
                     src="https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80"
                     alt="Vikram Singh"
-                    className="w-13 h-13 rounded-2xl object-cover border-2 border-brand-500 shadow-sm"
+                    className="w-13 h-13 rounded-2xl object-cover border-2 border-indigo-500 shadow-md shadow-indigo-500/20"
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5">
-                      <h4 className="font-extrabold text-sm text-slate-900 truncate">Vikram Singh</h4>
+                      <h4 className="font-extrabold text-sm text-white truncate">Vikram Singh</h4>
                       <TrustBadge size="sm" showLabel={false} />
                     </div>
-                    <p className="text-xs text-slate-600 font-medium">Auto Mechanic Pro • 8 Yrs Exp</p>
+                    <p className="text-xs text-slate-300 font-medium">Auto Mechanic Specialist • 8 Yrs Exp</p>
                     <div className="flex items-center gap-2 mt-1">
                       <StarRating rating={4.9} size={12} showScore />
-                      <span className="text-[11px] text-slate-400">• 62 Completed</span>
+                      <span className="text-[11px] text-slate-400">• 62 Dispatches Done</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Radar matching animation mock */}
-                <div className="p-4 rounded-2xl bg-brand-50/80 border border-brand-200 text-xs space-y-2">
-                  <div className="flex items-center justify-between text-brand-950 font-bold">
-                    <span>GPS Proximity</span>
-                    <span className="text-brand-600 font-extrabold">1.2 km away (Noida Sec 62)</span>
+                {/* Radar matching stats mock */}
+                <div className="p-4 rounded-2xl bg-indigo-950/40 border border-indigo-800/40 text-xs space-y-2.5">
+                  <div className="flex items-center justify-between font-semibold">
+                    <span className="text-slate-300">Live GPS Proximity</span>
+                    <span className="text-cyan-400 font-bold">1.2 km away (Noida Sec 62)</span>
                   </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>Estimated Arrival</span>
-                    <span className="font-bold text-slate-900">8 mins</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">Estimated Travel Time</span>
+                    <span className="font-bold text-slate-100">8 mins (Traffic Clear)</span>
                   </div>
-                  <div className="flex items-center justify-between text-slate-600">
-                    <span>AI Review Trust Score</span>
-                    <span className="font-bold text-emerald-600">98.4 / 100 (Top Tier)</span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-400">AI Trust Polarity Score</span>
+                    <span className="font-bold text-emerald-400">+0.94 (Highest Trust Tier)</span>
                   </div>
                 </div>
 
-                {/* 1-Click Interactive Buttons */}
+                {/* Interactive Action Buttons */}
                 <div className="pt-2 space-y-2">
                   <button
                     onClick={() => {
                       switchRole('customer');
                       navigate('/customer/track/mock_booking_001');
                     }}
-                    className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs shadow-md shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-xs shadow-lg shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 btn-shimmer"
                   >
-                    <span className="w-2 h-2 rounded-full bg-white animate-ping"></span>
-                    Launch Live GPS Moving Tracker →
+                    <Navigation size={14} className="text-white" />
+                    Open Live GPS Tracking Map →
                   </button>
 
                   <div className="grid grid-cols-2 gap-2">
@@ -237,18 +246,18 @@ export default function LandingPage() {
                         switchRole('provider');
                         navigate('/provider/dashboard');
                       }}
-                      className="py-2 px-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs transition-colors text-center"
+                      className="py-2 px-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs transition-colors text-center border border-slate-700"
                     >
-                      Provider Job View
+                      Provider Console
                     </button>
                     <button
                       onClick={() => {
                         switchRole('admin');
                         navigate('/admin/dashboard');
                       }}
-                      className="py-2 px-3 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-800 font-bold text-xs border border-purple-200 transition-colors text-center"
+                      className="py-2 px-3 rounded-xl bg-purple-950/40 hover:bg-purple-900/50 text-purple-300 font-bold text-xs border border-purple-800/50 transition-colors text-center"
                     >
-                      Admin Dashboard
+                      Admin Analytics
                     </button>
                   </div>
                 </div>
@@ -258,17 +267,23 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Popular Categories Grid */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
-          <h2 className="text-3xl font-extrabold text-slate-900">Featured Service Categories</h2>
-          <p className="text-slate-500 text-xs sm:text-sm">
-            Trained, verified and equipped professionals ready for instant dispatch across NCR cities.
+      {/* Featured Services Grid */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center max-w-2xl mx-auto mb-12 space-y-3">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-500/10 text-indigo-300 text-xs font-semibold border border-indigo-500/20">
+            <Sparkles size={13} className="text-indigo-400" />
+            Verified Professional Services
+          </div>
+          <h2 className="text-3xl sm:text-4xl font-extrabold text-white font-['Outfit']">
+            Ready For Instant Doorstep Dispatch
+          </h2>
+          <p className="text-slate-400 text-xs sm:text-sm">
+            Certified trade technicians equipped with complete toolkits and diagnostic hardware across NCR.
           </p>
         </div>
 
         {/* Category Pills */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-8">
+        <div className="flex flex-wrap items-center justify-center gap-2 mb-10">
           {['All', 'Mechanic', 'Electrician', 'Homemaker', 'Doctor', 'Caretaker', 'Tutor', 'Plumber', 'Painter'].map(
             (cat) => (
               <button
@@ -276,8 +291,8 @@ export default function LandingPage() {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
                   selectedCategory === cat
-                    ? 'bg-brand-600 text-white shadow-md shadow-brand-500/20'
-                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                    ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/30'
+                    : 'bg-slate-900/80 text-slate-400 border border-slate-800 hover:text-slate-200 hover:border-slate-700'
                 }`}
               >
                 {cat}
@@ -291,20 +306,21 @@ export default function LandingPage() {
           {filteredServices.map((service) => (
             <div
               key={service._id}
-              className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 flex flex-col group"
+              className="glass-card rounded-2xl overflow-hidden flex flex-col group border border-slate-800 hover:border-indigo-500/50"
             >
               <div className="h-44 overflow-hidden relative">
                 <img
                   src={service.image}
                   alt={service.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="w-full h-full object-cover group-hover:scale-108 transition-transform duration-500"
                 />
-                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-md px-2.5 py-1 rounded-lg text-[11px] font-bold text-slate-800 border border-slate-200 flex items-center gap-1">
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/20 to-transparent"></div>
+                <div className="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md px-2.5 py-1 rounded-xl text-[11px] font-bold text-white border border-slate-700 flex items-center gap-1.5 shadow-md">
                   {categoryIcons[service.category]}
                   <span>{service.category}</span>
                 </div>
                 {service.popular && (
-                  <div className="absolute top-3 right-3 bg-amber-500 text-white px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide">
+                  <div className="absolute top-3 right-3 bg-amber-500/90 text-slate-950 px-2 py-0.5 rounded-lg text-[10px] font-extrabold uppercase tracking-wide shadow-md">
                     Popular
                   </div>
                 )}
@@ -312,18 +328,18 @@ export default function LandingPage() {
 
               <div className="p-5 flex-1 flex flex-col justify-between">
                 <div>
-                  <h3 className="font-bold text-base text-slate-900 group-hover:text-brand-600 transition-colors">
+                  <h3 className="font-bold text-base text-white group-hover:text-indigo-400 transition-colors">
                     {service.name}
                   </h3>
-                  <p className="text-xs text-slate-500 mt-1.5 line-clamp-2 leading-relaxed">
+                  <p className="text-xs text-slate-400 mt-2 line-clamp-2 leading-relaxed">
                     {service.description}
                   </p>
                 </div>
 
-                <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                <div className="pt-4 mt-5 border-t border-slate-800/80 flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] text-slate-400 block font-medium">Starting from</span>
-                    <span className="text-base font-extrabold text-slate-900">₹{service.basePrice}</span>
+                    <span className="text-[10px] text-slate-500 block font-medium">Starting from</span>
+                    <span className="text-lg font-black text-white">₹{service.basePrice}</span>
                   </div>
 
                   <button
@@ -331,7 +347,7 @@ export default function LandingPage() {
                       switchRole('customer');
                       navigate(`/customer/dashboard?serviceId=${service._id}`);
                     }}
-                    className="px-3.5 py-2 rounded-xl bg-brand-50 hover:bg-brand-600 text-brand-700 hover:text-white font-semibold text-xs transition-colors flex items-center gap-1"
+                    className="px-3.5 py-2 rounded-xl bg-indigo-600/20 hover:bg-indigo-600 text-indigo-300 hover:text-white border border-indigo-500/30 hover:border-indigo-500 font-bold text-xs transition-all flex items-center gap-1 shadow-sm"
                   >
                     Book Now <ChevronRight size={14} />
                   </button>
@@ -342,44 +358,46 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works Flow */}
-      <section className="bg-slate-900 text-white py-20">
+      {/* 4-Step How It Works Flow */}
+      <section className="relative z-10 py-16 bg-slate-950/80 border-y border-slate-800/80">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-2xl mx-auto mb-16 space-y-2">
-            <span className="text-brand-400 text-xs font-bold uppercase tracking-wider">
-              Seamless 4-Step Journey
+            <span className="text-indigo-400 text-xs font-bold uppercase tracking-wider">
+              Autonomous Workflow
             </span>
-            <h2 className="text-3xl font-extrabold">How ServiceMan Works</h2>
+            <h2 className="text-3xl font-extrabold text-white font-['Outfit']">How ServiceMan Works</h2>
             <p className="text-slate-400 text-xs sm:text-sm">
-              From submission to verified professional arrival with automated quality control.
+              From geolocation request to verified technician arrival and automated review verification.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {[
               {
                 step: '01',
-                title: 'Select & Locate',
-                desc: 'Pick your required service and problem description. Your live GPS coordinates instantly map your location.'
+                title: 'Select & Geocode',
+                desc: 'Select your trade category and describe your issue. Google Maps / GPS automatically locks your exact doorstep pin.'
               },
               {
                 step: '02',
-                title: 'AI Radar Matching',
-                desc: 'Our engine computes match scores across distance, ratings, KYC status, and experience to alert top providers.'
+                title: 'AI Radar Dispatch',
+                desc: 'Our real-time algorithm ranks candidate providers by proximity, trust score, ratings, and sends countdown dispatches.'
               },
               {
                 step: '03',
-                title: 'Track & Verify',
-                desc: 'Track technician vehicle movements live on the map. Verify service initiation with a secure 4-digit OTP.'
+                title: 'Live Telemetry & OTP',
+                desc: 'Track the incoming technician vehicle live on the map. Verify job commencement with a secret 4-digit customer OTP.'
               },
               {
                 step: '04',
-                title: 'AI Review & Safety',
-                desc: 'Submit ratings evaluated by our NLP fraud & sentiment analyzer, keeping our ecosystem trusted and safe.'
+                title: 'Razorpay & AI Review',
+                desc: 'Settle via Razorpay test/live gateway. Submit reviews analyzed by our NLP sentiment and fraud detection engine.'
               }
             ].map((item, idx) => (
-              <div key={idx} className="relative p-6 rounded-2xl bg-slate-800/80 border border-slate-700 space-y-3">
-                <span className="text-3xl font-black text-brand-500/80">{item.step}</span>
+              <div key={idx} className="relative p-6 rounded-2xl glass-card border border-slate-800 space-y-3">
+                <span className="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-cyan-400">
+                  {item.step}
+                </span>
                 <h3 className="font-bold text-base text-white">{item.title}</h3>
                 <p className="text-xs text-slate-400 leading-relaxed">{item.desc}</p>
               </div>
@@ -388,29 +406,26 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Safety & Penalty Workflow Highlight */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-tr from-slate-900 via-indigo-950 to-slate-900 text-white shadow-xl flex flex-col lg:flex-row items-center justify-between gap-8">
+      {/* Safety & Quality Control Banner */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="p-8 sm:p-12 rounded-3xl bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 border border-indigo-800/50 text-white shadow-2xl flex flex-col lg:flex-row items-center justify-between gap-8">
           <div className="space-y-4 max-w-2xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-900/50 text-rose-300 text-xs font-bold border border-rose-700">
-              <ShieldAlert size={14} /> Strict Quality Control Policy
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/10 text-rose-300 text-xs font-bold border border-rose-500/30">
+              <ShieldAlert size={14} className="text-rose-400" /> 3-Tier Escalation Framework
             </div>
-            <h3 className="text-2xl sm:text-3xl font-extrabold">
-              3-Tier Quality Enforcement &amp; Zero Tolerance
+            <h3 className="text-2xl sm:text-3xl font-extrabold font-['Outfit']">
+              Zero-Tolerance Quality &amp; Trust Assurance
             </h3>
             <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-              To protect both customers and professionals, ServiceMan enforces automated escalations: 
-              <strong> 1st Issue = Official Warning</strong>, 
-              <strong> 2nd Issue = 30-Day Suspension</strong>, and 
-              <strong> 3rd Issue = Permanent National ID Blacklist</strong>.
+              Every professional maintains a live Trust Score (0-100%). Minor infractions yield formal warnings; repeat complaints trigger a 30-day suspension; confirmed fraud or misconduct triggers an immutable identity blacklist across our network.
             </p>
           </div>
 
           <Link
             to="/register?role=provider"
-            className="px-6 py-3.5 rounded-2xl bg-brand-500 hover:bg-brand-600 text-white font-bold text-xs sm:text-sm shadow-lg shadow-brand-500/30 transition-all shrink-0 text-center"
+            className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs sm:text-sm shadow-xl shadow-indigo-600/30 transition-all shrink-0 text-center btn-shimmer"
           >
-            Apply as Verified Partner →
+            Join As Certified Partner →
           </Link>
         </div>
       </section>

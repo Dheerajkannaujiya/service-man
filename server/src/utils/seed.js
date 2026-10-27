@@ -20,11 +20,15 @@ const Notification = require('../models/Notification');
 const Payment = require('../models/Payment');
 const AuditLog = require('../models/AuditLog');
 
-async function seedDatabase() {
+async function seedDatabase(options = {}) {
+  const { keepAlive = false, customUri = null } = (typeof options === 'boolean' ? { keepAlive: !options } : options);
   try {
-    console.log('[Seed] Connecting to MongoDB...');
-    await mongoose.connect(config.MONGODB_URI);
-    console.log('[Seed] Connected. Clearing previous seed collections...');
+    if (mongoose.connection.readyState !== 1) {
+      console.log('[Seed] Connecting to MongoDB...');
+      await mongoose.connect(customUri || config.MONGODB_URI);
+      console.log('[Seed] Connected.');
+    }
+    console.log('[Seed] Clearing previous seed collections...');
 
     // Drop database or collections to reset indexes completely
     try {
@@ -540,11 +544,21 @@ async function seedDatabase() {
     console.log('   Password: Admin123!');
     console.log('==================================================\n');
 
-    process.exit(0);
+    if (!keepAlive) {
+      process.exit(0);
+    }
+    return true;
   } catch (err) {
     console.error('[Seed Error]', err);
-    process.exit(1);
+    if (!keepAlive) {
+      process.exit(1);
+    }
+    throw err;
   }
 }
 
-seedDatabase();
+if (require.main === module) {
+  seedDatabase({ keepAlive: false });
+}
+
+module.exports = { seedDatabase };

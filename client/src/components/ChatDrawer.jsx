@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, X, Image, User, Check, CheckCheck } from 'lucide-react';
+import { Send, X, Image, User, Check, CheckCheck, MessageSquare, Radio } from 'lucide-react';
 import api from '../services/api';
 import { useSocket } from '../context/SocketContext';
 import { useAuth } from '../context/AuthContext';
@@ -37,7 +37,6 @@ export default function ChatDrawer({ bookingId, recipientName, isOpen, onClose }
     const handleNewMessage = (msg) => {
       if (msg.bookingId === bookingId) {
         setMessages((prev) => {
-          // Prevent duplicates
           if (prev.some((m) => m._id === msg._id)) return prev;
           return [...prev, msg];
         });
@@ -78,7 +77,6 @@ export default function ChatDrawer({ bookingId, recipientName, isOpen, onClose }
     try {
       const res = await api.post(`/chat/${bookingId}`, { content });
       if (res.data.success) {
-        // Optimistically add if not already received via socket
         setMessages((prev) => {
           if (prev.some((m) => m._id === res.data.message._id)) return prev;
           return [...prev, res.data.message];
@@ -95,56 +93,62 @@ export default function ChatDrawer({ bookingId, recipientName, isOpen, onClose }
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-y-0 right-0 z-[1200] w-full sm:w-96 bg-white shadow-2xl flex flex-col border-l border-slate-200 animate-in slide-in-from-right duration-300">
+    <div className="fixed inset-y-0 right-0 z-[1200] w-full sm:w-96 bg-dark-card/95 backdrop-blur-2xl shadow-2xl flex flex-col border-l border-white/[0.08] animate-in slide-in-from-right duration-300 text-slate-100">
       {/* Header */}
-      <div className="p-4 bg-brand-600 text-white flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center font-bold text-sm">
+      <div className="p-4 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border-b border-white/[0.08] flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-400 to-indigo-600 flex items-center justify-center font-bold text-white shadow-md shadow-cyan-500/20">
             {recipientName ? recipientName[0].toUpperCase() : 'S'}
           </div>
           <div>
-            <h3 className="font-semibold text-sm leading-none">{recipientName || 'Direct Message'}</h3>
-            <span className="text-[11px] text-blue-100 flex items-center gap-1 mt-0.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span> Live Socket Connected
+            <h3 className="font-bold text-sm text-white font-display leading-none">
+              {recipientName || 'Direct Message'}
+            </h3>
+            <span className="text-[10px] text-cyan-400 flex items-center gap-1.5 mt-1 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              Encrypted Channel
             </span>
           </div>
         </div>
         <button
           onClick={onClose}
-          className="p-1.5 rounded-lg hover:bg-white/20 transition-colors text-white"
+          className="p-1.5 rounded-lg hover:bg-white/10 transition-colors text-slate-400 hover:text-white"
         >
           <X size={18} />
         </button>
       </div>
 
       {/* Messages Feed */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-3 bg-slate-50">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-dark-base/50">
         {messages.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-slate-400 text-center text-xs px-4">
-            <User size={32} className="mb-2 text-slate-300" />
-            <p className="font-medium">Direct Booking Channel</p>
-            <p className="mt-1">Messages are end-to-end encrypted and visible only to you and your assigned professional.</p>
+          <div className="h-full flex flex-col items-center justify-center text-center p-6 text-slate-500 space-y-2">
+            <div className="w-12 h-12 rounded-2xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400">
+              <MessageSquare size={20} />
+            </div>
+            <p className="text-xs font-semibold text-slate-400">Secure Direct Message</p>
+            <p className="text-[11px] text-slate-500">
+              Coordinates, building landmarks, and instructions sent here are saved with this booking.
+            </p>
           </div>
         ) : (
-          messages.map((m) => {
-            const isMe = m.senderId?._id === user?.id || m.senderId === user?.id;
+          messages.map((msg, index) => {
+            const isMe = msg.senderId?._id === user?.id || msg.senderId === user?.id;
             return (
               <div
-                key={m._id}
+                key={msg._id || index}
                 className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
               >
                 <div
-                  className={`max-w-[82%] px-3.5 py-2 rounded-2xl text-xs leading-relaxed shadow-sm ${
+                  className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs shadow-sm ${
                     isMe
-                      ? 'bg-brand-600 text-white rounded-tr-none'
-                      : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
+                      ? 'bg-gradient-to-r from-cyan-500 to-indigo-600 text-white rounded-br-none shadow-cyan-500/10'
+                      : 'bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none'
                   }`}
                 >
-                  <p>{m.content}</p>
+                  <p className="leading-relaxed">{msg.content}</p>
                 </div>
-                <span className="text-[10px] text-slate-400 mt-1 px-1 flex items-center gap-1">
-                  {new Date(m.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                  {isMe && (m.isRead ? <CheckCheck size={11} className="text-blue-500" /> : <Check size={11} />)}
+                <span className="text-[9px] text-slate-500 mt-1 px-1 font-mono">
+                  {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </span>
               </div>
             );
@@ -153,19 +157,19 @@ export default function ChatDrawer({ bookingId, recipientName, isOpen, onClose }
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input */}
-      <form onSubmit={handleSend} className="p-3 bg-white border-t border-slate-200 flex items-center gap-2">
+      {/* Input Bar */}
+      <form onSubmit={handleSend} className="p-3.5 bg-dark-card border-t border-white/[0.08] flex items-center gap-2">
         <input
           type="text"
           value={text}
           onChange={(e) => setText(e.target.value)}
-          placeholder="Type a message..."
-          className="flex-1 px-3.5 py-2 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
+          placeholder="Type message or landmark..."
+          className="flex-1 px-3.5 py-2 text-xs rounded-xl glass-input placeholder:text-slate-500"
         />
         <button
           type="submit"
           disabled={!text.trim() || sending}
-          className="p-2.5 bg-brand-600 text-white rounded-xl hover:bg-brand-700 disabled:opacity-50 transition-colors focus:outline-none"
+          className="p-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 disabled:opacity-50 text-white transition-all shadow-md shadow-cyan-500/20"
         >
           <Send size={15} />
         </button>

@@ -12,9 +12,13 @@ import {
   CheckCircle,
   AlertCircle,
   Star,
-  Sparkles
+  Sparkles,
+  Zap,
+  CheckCircle2,
+  Lock
 } from 'lucide-react';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import { useSocket } from '../../context/SocketContext';
 import MapTracker from '../../components/MapTracker';
 import StatusBadge from '../../components/StatusBadge';
@@ -25,6 +29,7 @@ import StarRating from '../../components/StarRating';
 export default function CustomerTrackingView() {
   const { bookingId } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { socket } = useSocket();
 
   const [booking, setBooking] = useState(null);
@@ -122,7 +127,7 @@ export default function CustomerTrackingView() {
         }
       }
 
-      // 3. Fallback: If still not found and in demo mode, use active booking
+      // 3. Fallback: If still not found, use active booking
       if (activeRes.data.booking) {
         setBooking(activeRes.data.booking);
       }
@@ -133,32 +138,94 @@ export default function CustomerTrackingView() {
     }
   };
 
-  const handlePayNow = async () => {
+  /**
+   * Handle Razorpay Payment:
+   * Opens official Razorpay Checkout popup if key configured,
+   * with seamless fast-test fallback simulation.
+   */
+  const handlePayNow = async (forceSimulation = false) => {
     setPaying(true);
     try {
-      // 1. Create simulated order
+      // 1. Create Order on backend
       const orderRes = await api.post('/payments/create-order', {
         bookingId: booking._id,
         amount: booking.finalPrice || booking.estimatedPrice
       });
 
-      if (orderRes.data.success) {
-        // 2. Verify payment
-        const verifyRes = await api.post('/payments/verify', {
-          paymentId: orderRes.data.order?.paymentId || `pay_${Date.now()}`,
-          razorpayOrderId: orderRes.data.order?.razorpayOrderId || `order_${Date.now()}`,
-          razorpayPaymentId: `pay_${Date.now()}`,
-          razorpaySignature: 'simulated_valid_signature'
-        });
+      if (!orderRes.data.success) {
+        throw new Error(orderRes.data.message || 'Could not initialize payment order');
+      }
 
-        if (verifyRes.data.success) {
-          setPaymentDone(true);
-          setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
-          loadBooking();
-        }
+      const orderData = orderRes.data.order;
+      const keyId = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
+
+      // If Razorpay SDK is loaded and we have a valid key (not simulated order)
+      if (
+        !forceSimulation &&
+        window.Razorpay &&
+        keyId &&
+        !keyId.includes('serviceman2026') &&
+        !orderData.razorpayOrderId.startsWith('order_sim_')
+      ) {
+        const rzpOptions = {
+          key: keyId,
+          amount: Math.round(orderData.amount * 100),
+          currency: orderData.currency || 'INR',
+          name: 'ServiceMan Marketplace',
+          description: `Payment for #${booking.bookingNumber || booking._id.slice(-6)}`,
+          image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=100&q=80',
+          order_id: orderData.razorpayOrderId,
+          handler: async function (response) {
+            try {
+              const verifyRes = await api.post('/payments/verify', {
+                paymentId: orderData.paymentId,
+                razorpayOrderId: response.razorpay_order_id || orderData.razorpayOrderId,
+                razorpayPaymentId: response.razorpay_payment_id,
+                razorpaySignature: response.razorpay_signature
+              });
+
+              if (verifyRes.data.success) {
+                setPaymentDone(true);
+                setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
+                loadBooking();
+              }
+            } catch (vErr) {
+              alert('Payment verification failed: ' + (vErr.response?.data?.message || vErr.message));
+            }
+          },
+          prefill: {
+            name: user?.name || 'Customer',
+            email: user?.email || 'customer@serviceman.com',
+            contact: user?.phone || '+919876543210'
+          },
+          theme: {
+            color: '#4f46e5'
+          }
+        };
+
+        const rzpInstance = new window.Razorpay(rzpOptions);
+        rzpInstance.on('payment.failed', function (resp) {
+          alert('Razorpay Payment failed: ' + resp.error.description);
+        });
+        rzpInstance.open();
+        return;
+      }
+
+      // Fast Sandbox Simulation Fallback (Plug-and-Play Test Mode)
+      const verifyRes = await api.post('/payments/verify', {
+        paymentId: orderData.paymentId || `pay_${Date.now()}`,
+        razorpayOrderId: orderData.razorpayOrderId || `order_${Date.now()}`,
+        razorpayPaymentId: `pay_test_${Date.now()}`,
+        razorpaySignature: 'simulated_valid_signature'
+      });
+
+      if (verifyRes.data.success) {
+        setPaymentDone(true);
+        setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
+        loadBooking();
       }
     } catch (err) {
-      alert(err.response?.data?.message || 'Payment simulation failed');
+      alert(err.response?.data?.message || err.message || 'Payment processing error');
     } finally {
       setPaying(false);
     }
@@ -194,8 +261,8 @@ export default function CustomerTrackingView() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center gap-3">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-brand-600"></div>
-        <p className="text-xs text-slate-500 font-medium">Connecting to GPS Telemetry...</p>
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-indigo-500"></div>
+        <p className="text-xs text-slate-400 font-medium">Connecting to GPS Telemetry...</p>
       </div>
     );
   }
@@ -204,13 +271,13 @@ export default function CustomerTrackingView() {
     return (
       <div className="max-w-xl mx-auto py-20 text-center space-y-4">
         <AlertCircle size={40} className="mx-auto text-rose-500" />
-        <h2 className="text-xl font-bold text-slate-900">Booking Session Not Found</h2>
-        <p className="text-xs text-slate-500">
+        <h2 className="text-xl font-bold text-white">Booking Session Not Found</h2>
+        <p className="text-xs text-slate-400">
           We could not locate this specific tracking session. Head to your Customer Hub to launch an active dispatch.
         </p>
         <Link
           to="/customer/dashboard"
-          className="inline-block px-5 py-2.5 bg-brand-600 text-white rounded-xl text-xs font-bold shadow-md shadow-brand-500/20"
+          className="inline-block px-5 py-2.5 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-lg shadow-indigo-600/30"
         >
           Go to Customer Hub
         </Link>
@@ -230,37 +297,37 @@ export default function CustomerTrackingView() {
   const isPaid = ['paid', 'completed'].includes(booking.paymentStatus?.toLowerCase());
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 text-slate-100">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <button
             onClick={() => navigate('/customer/dashboard')}
-            className="p-2.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-600 transition-colors shadow-sm"
+            className="p-2.5 rounded-xl glass-card hover:bg-slate-800 text-slate-300 transition-colors shadow-sm"
           >
             <ArrowLeft size={16} />
           </button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-xl font-extrabold text-slate-900">Live Service Tracker</h1>
+              <h1 className="text-xl font-extrabold text-white font-['Outfit']">Live Mission Tracker</h1>
               <StatusBadge status={booking.status} />
             </div>
-            <p className="text-xs text-slate-500 mt-0.5">Booking #{booking.bookingNumber}</p>
+            <p className="text-xs text-slate-400 mt-0.5">Booking #{booking.bookingNumber}</p>
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           <button
             onClick={() => setChatOpen(true)}
-            className="px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-800 font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+            className="px-4 py-2 rounded-xl glass-card hover:bg-slate-800 text-slate-200 font-semibold text-xs flex items-center gap-1.5 shadow-sm border border-slate-700"
           >
-            <MessageSquare size={14} className="text-brand-600" /> In-App Chat
+            <MessageSquare size={14} className="text-indigo-400" /> In-App Live Chat
           </button>
         </div>
       </div>
 
       {/* Stepper Progress Bar */}
-      <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+      <div className="glass-card p-6 rounded-3xl border border-slate-800">
         <div className="grid grid-cols-5 gap-2 text-center relative">
           {steps.map((step, idx) => {
             const isDone = currentStepIndex >= idx;
@@ -270,13 +337,13 @@ export default function CustomerTrackingView() {
                 <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs transition-all ${
                     isDone
-                      ? 'bg-brand-600 text-white shadow-md shadow-brand-500/30'
-                      : 'bg-slate-100 text-slate-400'
-                  } ${isCurrent ? 'ring-4 ring-brand-100 animate-pulse' : ''}`}
+                      ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-600/40'
+                      : 'bg-slate-800 text-slate-500'
+                  } ${isCurrent ? 'ring-4 ring-indigo-500/30 animate-pulse' : ''}`}
                 >
                   {isDone ? <CheckCircle size={16} /> : idx + 1}
                 </div>
-                <span className={`text-[11px] font-semibold ${isDone ? 'text-slate-900' : 'text-slate-400'}`}>
+                <span className={`text-[11px] font-semibold ${isDone ? 'text-white' : 'text-slate-500'}`}>
                   {step.label}
                 </span>
               </div>
@@ -300,84 +367,97 @@ export default function CustomerTrackingView() {
             ]}
             customerName={booking.address || 'Your Address'}
             providerName={booking.providerId?.name || 'Assigned Technician'}
-            height="420px"
+            height="440px"
           />
         </div>
 
         {/* Sidebar Info */}
         <div className="lg:col-span-4 space-y-4">
           {/* OTP Verification Box */}
-          <div className="bg-gradient-to-br from-amber-50 to-orange-50 p-5 rounded-3xl border border-amber-200 shadow-sm text-center space-y-1">
-            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-700">
+          <div className="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-center space-y-1 shadow-lg">
+            <span className="text-[10px] font-extrabold uppercase tracking-wider text-amber-400">
               Start Service OTP
             </span>
-            <div className="text-3xl font-black text-amber-900 tracking-widest my-1">
+            <div className="text-3xl font-black text-amber-300 tracking-widest my-1 font-mono">
               {booking.startOtp || '7294'}
             </div>
-            <p className="text-[11px] text-amber-700 leading-snug">
+            <p className="text-[11px] text-amber-300/80 leading-snug">
               Share this 4-digit code with your technician upon arrival to authorize starting work.
             </p>
           </div>
 
           {/* Provider Card */}
-          <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm space-y-4">
+          <div className="glass-card p-5 rounded-3xl border border-slate-800 space-y-4">
             <div className="flex items-center gap-3.5">
               <img
                 src={booking.providerId?.avatar || 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=120&q=80'}
                 alt={booking.providerId?.name}
-                className="w-14 h-14 rounded-2xl object-cover"
+                className="w-14 h-14 rounded-2xl object-cover border-2 border-indigo-500 shadow-md shadow-indigo-500/20"
               />
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <h3 className="font-bold text-sm text-slate-900 truncate">
+                  <h3 className="font-bold text-sm text-white truncate">
                     {booking.providerId?.name || 'Assigned Technician'}
                   </h3>
                   <TrustBadge size="sm" showLabel={false} />
                 </div>
-                <p className="text-xs text-slate-500">{booking.serviceId?.category || 'Service'} Specialist</p>
-                <p className="text-xs text-brand-600 font-semibold mt-0.5">{booking.providerId?.phone || '+919812345678'}</p>
+                <p className="text-xs text-slate-400">{booking.serviceId?.category || 'Service'} Specialist</p>
+                <p className="text-xs text-indigo-400 font-semibold mt-0.5">{booking.providerId?.phone || '+919812345678'}</p>
               </div>
             </div>
 
-            <div className="pt-3 border-t border-slate-100 space-y-2 text-xs">
-              <div className="flex justify-between text-slate-600">
-                <span>Service:</span>
-                <span className="font-bold text-slate-900">{booking.serviceId?.name || 'On-Demand Service'}</span>
+            <div className="pt-3 border-t border-slate-800 space-y-2 text-xs">
+              <div className="flex justify-between text-slate-400">
+                <span>Service Category:</span>
+                <span className="font-bold text-white">{booking.serviceId?.name || 'On-Demand Service'}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
+              <div className="flex justify-between text-slate-400">
                 <span>Total Amount:</span>
-                <span className="font-extrabold text-slate-900">₹{booking.finalPrice || booking.estimatedPrice}</span>
+                <span className="font-extrabold text-white">₹{booking.finalPrice || booking.estimatedPrice}</span>
               </div>
-              <div className="flex justify-between text-slate-600">
-                <span>Payment:</span>
-                <span className={`font-bold ${isPaid ? 'text-emerald-600' : 'text-amber-600'} uppercase`}>
-                  {isPaid ? 'PAID' : 'PENDING'} ({booking.paymentMethod || 'RAZORPAY'})
+              <div className="flex justify-between text-slate-400">
+                <span>Payment Settlement:</span>
+                <span className={`font-bold ${isPaid ? 'text-emerald-400' : 'text-amber-400'} uppercase`}>
+                  {isPaid ? '✓ PAID' : 'PENDING'} ({booking.paymentMethod || 'RAZORPAY'})
                 </span>
               </div>
             </div>
 
-            {/* Payment Button if Completed and Unpaid */}
+            {/* Razorpay Gateway Checkout / Settlement */}
             {['SERVICE_COMPLETED', 'CUSTOMER_REVIEWED'].includes(booking.status) && !isPaid && (
-              <button
-                onClick={handlePayNow}
-                disabled={paying}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5 transition-all disabled:opacity-50"
-              >
-                <CreditCard size={15} /> {paying ? 'Processing Payment...' : `Pay ₹${booking.finalPrice || booking.estimatedPrice} Online`}
-              </button>
-            )}
+              <div className="space-y-2 pt-2">
+                <button
+                  onClick={() => handlePayNow(false)}
+                  disabled={paying}
+                  className="w-full py-3 bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs rounded-xl shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 transition-all disabled:opacity-50 btn-shimmer"
+                >
+                  <CreditCard size={15} />
+                  <span>{paying ? 'Connecting Gateway...' : `Pay ₹${booking.finalPrice || booking.estimatedPrice} with Razorpay`}</span>
+                </button>
 
-            {paymentDone && (
-              <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs text-center font-bold border border-emerald-200">
-                ✓ Payment Captured via Razorpay!
+                <button
+                  type="button"
+                  onClick={() => handlePayNow(true)}
+                  disabled={paying}
+                  className="w-full py-2 bg-slate-800/80 hover:bg-slate-700 text-slate-300 font-medium text-[11px] rounded-xl border border-slate-700 transition-colors"
+                >
+                  ⚡ Fast Simulation Pay (Instant Test)
+                </button>
               </div>
             )}
 
-            {/* Review Button if Completed */}
+            {paymentDone && (
+              <div className="p-3 bg-emerald-500/10 text-emerald-300 rounded-xl text-xs text-center font-bold border border-emerald-500/30 flex items-center justify-center gap-1.5">
+                <CheckCircle2 size={15} className="text-emerald-400" />
+                <span>Payment Captured via Razorpay Escrow!</span>
+              </div>
+            )}
+
+            {/* AI Review Submission Trigger */}
             {['SERVICE_COMPLETED', 'CUSTOMER_REVIEWED'].includes(booking.status) && (
               <button
                 onClick={() => setShowReviewModal(true)}
-                className="w-full py-2.5 bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold text-xs rounded-xl border border-brand-200 flex items-center justify-center gap-1.5 transition-all"
+                className="w-full py-2.5 bg-indigo-500/10 hover:bg-indigo-500/20 text-indigo-300 font-bold text-xs rounded-xl border border-indigo-500/30 flex items-center justify-center gap-1.5 transition-all"
               >
                 <Star size={14} className="fill-amber-400 text-amber-400" /> Leave AI-Analyzed Review
               </button>
@@ -388,15 +468,15 @@ export default function CustomerTrackingView() {
 
       {/* Review Modal */}
       {showReviewModal && (
-        <div className="fixed inset-0 z-[1300] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95 duration-150">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-                <Sparkles size={18} className="text-purple-600" /> Rate Your Experience
+        <div className="fixed inset-0 z-[1300] bg-slate-950/70 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-700 space-y-4 animate-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+              <h3 className="font-bold text-base text-white flex items-center gap-2 font-['Outfit']">
+                <Sparkles size={18} className="text-indigo-400" /> Rate Service Experience
               </h3>
               <button
                 onClick={() => setShowReviewModal(false)}
-                className="text-slate-400 hover:text-slate-600 text-sm font-bold"
+                className="text-slate-400 hover:text-white text-sm font-bold"
               >
                 ✕
               </button>
@@ -404,7 +484,7 @@ export default function CustomerTrackingView() {
 
             <form onSubmit={handleSubmitReview} className="space-y-4">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-2">Rating</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-2">Rating</label>
                 <div className="flex items-center gap-2">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -413,30 +493,30 @@ export default function CustomerTrackingView() {
                       onClick={() => setReviewRating(star)}
                       className="p-1 text-amber-400 hover:scale-110 transition-transform"
                     >
-                      <Star size={24} className={star <= reviewRating ? 'fill-amber-400' : 'text-slate-300'} />
+                      <Star size={24} className={star <= reviewRating ? 'fill-amber-400' : 'text-slate-600'} />
                     </button>
                   ))}
-                  <span className="text-xs font-bold text-slate-600 ml-2">{reviewRating} / 5 Stars</span>
+                  <span className="text-xs font-bold text-slate-300 ml-2">{reviewRating} / 5 Stars</span>
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1">Feedback Comments</label>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Feedback Comments</label>
                 <textarea
                   required
                   rows={3}
                   value={reviewComment}
                   onChange={(e) => setReviewComment(e.target.value)}
-                  placeholder="Share details about the technician's punctuality, quality, and service..."
-                  className="w-full p-3 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+                  placeholder="Share details about punctuality, service quality, and technician courtesy..."
+                  className="w-full p-3 text-xs rounded-xl glass-input placeholder:text-slate-500"
                 ></textarea>
-                <span className="text-[10px] text-slate-400">
+                <span className="text-[10px] text-slate-400 mt-1 block">
                   NLP engine will automatically evaluate sentiment &amp; impact on trust badge.
                 </span>
               </div>
 
               {reviewResult && (
-                <div className="p-3 bg-emerald-50 text-emerald-800 rounded-xl text-xs font-semibold border border-emerald-200">
+                <div className="p-3 bg-emerald-500/10 text-emerald-300 rounded-xl text-xs font-semibold border border-emerald-500/30">
                   ✓ Review Submitted! AI Sentiment: {reviewResult.sentimentLabel?.toUpperCase()} (+{reviewResult.trustScoreDelta} pts Trust Impact)
                 </div>
               )}
@@ -444,7 +524,7 @@ export default function CustomerTrackingView() {
               <button
                 type="submit"
                 disabled={submittingReview}
-                className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-md shadow-brand-500/20 transition-all disabled:opacity-50"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs shadow-lg shadow-indigo-600/30 transition-all disabled:opacity-50 btn-shimmer"
               >
                 {submittingReview ? 'Submitting with AI Evaluation...' : 'Submit Review'}
               </button>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Briefcase, Search, ShieldAlert, AlertTriangle, Ban, CheckCircle, Star, Filter } from 'lucide-react';
+import { Briefcase, Search, ShieldAlert, AlertTriangle, Ban, CheckCircle, Star, Filter, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 import StatusBadge from '../../components/StatusBadge';
 import TrustBadge from '../../components/TrustBadge';
@@ -46,20 +46,17 @@ export default function AdminProvidersView() {
     setProcessing(true);
 
     try {
-      // Create a dummy complaint to escalate or call penalty directly
       const res = await api.put(`/admin/complaints/sim_${Date.now()}/resolve`, {
         actionTaken: penaltyAction,
         adminNotes: penaltyReason,
         severity: 'critical'
       });
 
-      // Reload providers
       alert(`Penalty (${penaltyAction.replace(/_/g, ' ')}) recorded successfully.`);
       setSelectedProvider(null);
       setPenaltyReason('');
       loadProviders();
     } catch (err) {
-      // Fallback: update provider status
       alert('Penalty updated on provider profile.');
       setSelectedProvider(null);
       setPenaltyReason('');
@@ -70,20 +67,22 @@ export default function AdminProvidersView() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6 text-slate-100">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-extrabold text-slate-900 flex items-center gap-2">
-          <Briefcase size={26} className="text-brand-600" />
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-display flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-cyan-500/10 border border-cyan-500/30 flex items-center justify-center text-cyan-400">
+            <Briefcase size={22} />
+          </div>
           Provider Directory &amp; Quality Enforcement
         </h1>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-slate-400 mt-1">
           Monitor provider performance, KYC verification compliance, trust scores, and apply disciplinary escalations.
         </p>
       </div>
 
       {/* Filters Bar */}
-      <div className="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-center gap-3">
+      <div className="glass-panel p-4 rounded-2xl border border-white/[0.08] flex flex-col md:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <input
             type="text"
@@ -91,7 +90,7 @@ export default function AdminProvidersView() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && loadProviders()}
-            className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            className="w-full pl-9 pr-3.5 py-2 text-xs rounded-xl glass-input placeholder:text-slate-500"
           />
           <Search size={15} className="absolute left-3 top-2.5 text-slate-400" />
         </div>
@@ -99,207 +98,187 @@ export default function AdminProvidersView() {
         <select
           value={cityFilter}
           onChange={(e) => setCityFilter(e.target.value)}
-          className="px-3.5 py-2 text-xs rounded-xl border border-slate-300 w-full md:w-auto"
+          className="px-3.5 py-2 text-xs rounded-xl glass-input bg-slate-900 w-full md:w-auto"
         >
-          <option value="">All Cities</option>
-          <option value="Noida">Noida</option>
-          <option value="Delhi">Delhi</option>
-          <option value="Gurugram">Gurugram</option>
-          <option value="Ghaziabad">Ghaziabad</option>
-          <option value="Faridabad">Faridabad</option>
-          <option value="Meerut">Meerut</option>
+          <option value="" className="bg-slate-900 text-white">All NCR Cities</option>
+          <option value="Noida" className="bg-slate-900 text-white">Noida</option>
+          <option value="Delhi" className="bg-slate-900 text-white">Delhi</option>
+          <option value="Gurugram" className="bg-slate-900 text-white">Gurugram</option>
+          <option value="Ghaziabad" className="bg-slate-900 text-white">Ghaziabad</option>
+          <option value="Faridabad" className="bg-slate-900 text-white">Faridabad</option>
+          <option value="Meerut" className="bg-slate-900 text-white">Meerut</option>
         </select>
 
         <select
           value={categoryFilter}
           onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3.5 py-2 text-xs rounded-xl border border-slate-300 w-full md:w-auto"
+          className="px-3.5 py-2 text-xs rounded-xl glass-input bg-slate-900 w-full md:w-auto"
         >
-          <option value="">All Categories</option>
-          <option value="Mechanic">Mechanic</option>
-          <option value="Electrician">Electrician</option>
-          <option value="Homemaker">Homemaker</option>
-          <option value="Doctor">Doctor</option>
-          <option value="Caretaker">Caretaker</option>
-          <option value="Tutor">Tutor</option>
-          <option value="Plumber">Plumber</option>
-          <option value="Painter">Painter</option>
+          <option value="" className="bg-slate-900 text-white">All Trades / Categories</option>
+          <option value="Mechanic" className="bg-slate-900 text-white">Mechanic</option>
+          <option value="Electrician" className="bg-slate-900 text-white">Electrician</option>
+          <option value="Homemaker" className="bg-slate-900 text-white">Deep Cleaning</option>
+          <option value="Doctor" className="bg-slate-900 text-white">Doctor Visit</option>
+          <option value="Caretaker" className="bg-slate-900 text-white">Caretaker</option>
+          <option value="Tutor" className="bg-slate-900 text-white">Tutor</option>
+          <option value="Plumber" className="bg-slate-900 text-white">Plumber</option>
+          <option value="Painter" className="bg-slate-900 text-white">Painter</option>
         </select>
 
         <button
           onClick={loadProviders}
-          className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors w-full md:w-auto"
+          className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white rounded-xl text-xs font-bold transition-all w-full md:w-auto shrink-0 shadow-md shadow-cyan-500/20"
         >
-          Apply Filters
+          Search
         </button>
       </div>
 
       {/* Providers Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="glass-panel rounded-3xl border border-white/[0.08] shadow-2xl overflow-hidden">
         {loading ? (
-          <div className="py-20 text-center text-xs text-slate-400">Loading providers...</div>
+          <div className="py-20 text-center text-xs text-slate-500">Querying provider database...</div>
         ) : providers.length === 0 ? (
-          <div className="py-20 text-center text-xs text-slate-400">No providers matched the filters.</div>
+          <p className="py-20 text-center text-xs text-slate-500">No matching service providers found.</p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="text-[11px] uppercase tracking-wider text-slate-400 bg-slate-50 border-b border-slate-200">
+              <thead className="text-[10px] uppercase font-mono tracking-wider text-slate-400 bg-slate-900/80 border-b border-slate-800">
                 <tr>
-                  <th className="py-3 px-4">Provider</th>
+                  <th className="py-3 px-4">Provider Identity</th>
                   <th className="py-3 px-4">Categories</th>
+                  <th className="py-3 px-4">City</th>
+                  <th className="py-3 px-4">Rating &amp; Trust</th>
                   <th className="py-3 px-4">KYC Status</th>
-                  <th className="py-3 px-4">Trust Score</th>
-                  <th className="py-3 px-4">Rating</th>
-                  <th className="py-3 px-4">Warnings</th>
-                  <th className="py-3 px-4 text-right">Disciplinary Action</th>
+                  <th className="py-3 px-4">Account Status</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-100 text-slate-700">
-                {providers.map((p) => {
-                  const userData = p.userId || p.user || {};
-                  const isSuspended = userData.isSuspended;
-                  const isBanned = userData.isBanned;
-
-                  return (
-                    <tr key={p._id} className="hover:bg-slate-50/60 transition-colors">
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-3">
-                          <img
-                            src={userData.avatar || 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?auto=format&fit=crop&w=80&q=80'}
-                            alt={userData.name}
-                            className="w-10 h-10 rounded-xl object-cover"
-                          />
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-slate-900 block">{userData.name || 'Service Partner'}</span>
-                              {p.hasTrustBadge && <TrustBadge size="sm" showLabel={false} />}
-                            </div>
-                            <span className="text-[11px] text-slate-400 block">
-                              {userData.email || userData.phone || 'Noida (NCR)'} • {userData.city || 'NCR'}
-                            </span>
+              <tbody className="divide-y divide-slate-800/80 text-slate-300">
+                {providers.map((p) => (
+                  <tr key={p._id} className="hover:bg-slate-900/40 transition-colors">
+                    <td className="py-4 px-4">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={p.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'}
+                          alt={p.name}
+                          className="w-10 h-10 rounded-xl object-cover border border-slate-700"
+                        />
+                        <div>
+                          <div className="flex items-center gap-1.5">
+                            <span className="font-bold text-white block font-display">{p.name}</span>
+                            {p.hasTrustBadge && <TrustBadge size="sm" showLabel={false} />}
                           </div>
+                          <span className="text-[11px] text-slate-400 block font-mono">{p.email || p.phone}</span>
                         </div>
-                      </td>
+                      </div>
+                    </td>
 
-                      <td className="py-4 px-4 font-medium">
-                        {p.categories?.join(', ')}
-                      </td>
+                    <td className="py-4 px-4">
+                      <span className="text-cyan-300 font-semibold">{p.categories?.join(', ')}</span>
+                    </td>
 
-                      <td className="py-4 px-4">
-                        <StatusBadge status={p.kycStatus} />
-                      </td>
+                    <td className="py-4 px-4 text-slate-400 font-medium">
+                      {p.city}
+                    </td>
 
-                      <td className="py-4 px-4">
-                        <span className="text-sm font-extrabold text-emerald-600">
-                          {p.trustScore}%
+                    <td className="py-4 px-4">
+                      <div className="space-y-1">
+                        <StarRating rating={p.ratingAverage} size={12} showScore />
+                        <span className="text-[11px] text-emerald-400 font-mono font-bold block">
+                          {p.trustScore}% Trust Index
                         </span>
-                      </td>
+                      </div>
+                    </td>
 
-                      <td className="py-4 px-4">
-                        <div className="flex items-center gap-1">
-                          <StarRating rating={p.ratingAverage} size={12} showScore />
-                          <span className="text-[10px] text-slate-400">({p.ratingCount})</span>
-                        </div>
-                      </td>
+                    <td className="py-4 px-4">
+                      <StatusBadge status={p.kycStatus} />
+                    </td>
 
-                      <td className="py-4 px-4">
-                        {(userData.warningCount || 0) > 0 ? (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800 border border-amber-300">
-                            {userData.warningCount} Warning(s)
-                          </span>
-                        ) : (
-                          <span className="text-slate-400 text-[11px]">Clean Record</span>
-                        )}
-                      </td>
+                    <td className="py-4 px-4">
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold uppercase border ${
+                          p.accountStatus === 'active'
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            : p.accountStatus === 'suspended'
+                            ? 'bg-orange-500/15 text-orange-300 border-orange-500/30'
+                            : 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                        }`}
+                      >
+                        {p.accountStatus}
+                      </span>
+                    </td>
 
-                      <td className="py-4 px-4 text-right">
-                        {isBanned ? (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-rose-100 text-rose-800 border border-rose-300 uppercase">
-                            Permanently Banned
-                          </span>
-                        ) : isSuspended ? (
-                          <span className="px-2.5 py-1 rounded-full text-[10px] font-black bg-orange-100 text-orange-800 border border-orange-300 uppercase">
-                            Suspended (30d)
-                          </span>
-                        ) : (
-                          <button
-                            onClick={() => setSelectedProvider(p)}
-                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 border border-slate-200 hover:border-rose-200 font-bold text-xs flex items-center gap-1 ml-auto transition-colors"
-                          >
-                            <ShieldAlert size={13} /> Disciplinary Action
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
+                    <td className="py-4 px-4 text-right">
+                      <button
+                        onClick={() => setSelectedProvider(p)}
+                        className="px-3 py-1.5 rounded-xl border border-rose-500/30 text-rose-300 hover:bg-rose-500/15 text-xs font-bold transition-all"
+                      >
+                        Enforce Penalty
+                      </button>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
       </div>
 
-      {/* 3-TIER PENALTY MODAL */}
+      {/* Penalty Modal */}
       {selectedProvider && (
-        <div className="fixed inset-0 z-[1200] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-6 border border-slate-200 space-y-4">
-            <h3 className="font-bold text-base text-slate-900 flex items-center gap-2">
-              <ShieldAlert size={18} className="text-rose-600" /> Apply Disciplinary Escalation
-            </h3>
-            <p className="text-xs text-slate-500">
-              Target Provider: <strong>{selectedProvider.userId?.name}</strong> ({selectedProvider.userId?.email})
-            </p>
+        <div className="fixed inset-0 z-[1200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4">
+          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-rose-500/40 shadow-2xl max-w-lg w-full space-y-5 animate-in zoom-in-95 duration-150">
+            <div>
+              <span className="text-[10px] uppercase font-mono font-bold tracking-widest text-rose-400">
+                Disciplinary Enforcement
+              </span>
+              <h3 className="text-xl font-bold text-white font-display">
+                Apply Sanction: {selectedProvider.name}
+              </h3>
+            </div>
 
-            <div className="space-y-2">
-              <label className="block text-xs font-semibold text-slate-700">Select Penalty Tier</label>
-              <div className="space-y-2">
-                {[
-                  { id: 'warning_issued', label: '1st Violation: Official Quality Warning', desc: 'Registers penalty & delivers formal reprimand' },
-                  { id: 'suspended', label: '2nd Violation: 30-Day Account Suspension', desc: 'Disables matching & makes provider unavailable' },
-                  { id: 'permanently_banned', label: '3rd Violation: Permanent National ID Ban', desc: 'Blacklists Aadhaar/Phone & disables account' }
-                ].map((tier) => (
-                  <button
-                    key={tier.id}
-                    type="button"
-                    onClick={() => setPenaltyAction(tier.id)}
-                    className={`w-full p-3 rounded-xl border text-left transition-all ${
-                      penaltyAction === tier.id
-                        ? 'border-rose-500 bg-rose-50/70 ring-2 ring-rose-200'
-                        : 'border-slate-200 hover:bg-slate-50'
-                    }`}
-                  >
-                    <span className="font-bold text-xs text-slate-900 block">{tier.label}</span>
-                    <span className="text-[10px] text-slate-500 block mt-0.5">{tier.desc}</span>
-                  </button>
-                ))}
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">Sanction Action</label>
+                <select
+                  value={penaltyAction}
+                  onChange={(e) => setPenaltyAction(e.target.value)}
+                  className="w-full px-3 py-2 text-xs rounded-xl glass-input bg-slate-900"
+                >
+                  <option value="warning_issued" className="bg-slate-900 text-white">Issue Official Performance Warning</option>
+                  <option value="trust_score_penalty" className="bg-slate-900 text-white">Deduct 20 Trust Score Points</option>
+                  <option value="temporary_suspension_7d" className="bg-slate-900 text-white">7-Day Dispatch Suspension</option>
+                  <option value="permanent_ban" className="bg-slate-900 text-white">Permanent Account Deactivation / Ban</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-300 mb-1">
+                  Enforcement Rationale
+                </label>
+                <textarea
+                  rows={3}
+                  value={penaltyReason}
+                  onChange={(e) => setPenaltyReason(e.target.value)}
+                  placeholder="Record customer complaint ID, SLA violation, or breach reason..."
+                  className="w-full p-3 text-xs rounded-xl glass-input placeholder:text-slate-500"
+                ></textarea>
               </div>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">Audit Record Justification</label>
-              <textarea
-                required
-                rows={3}
-                value={penaltyReason}
-                onChange={(e) => setPenaltyReason(e.target.value)}
-                placeholder="Detail the verified complaint, customer evidence, or fraud trigger..."
-                className="w-full p-2.5 text-xs rounded-xl border border-slate-300 focus:ring-2 focus:ring-rose-500"
-              ></textarea>
-            </div>
-
-            <div className="flex gap-2">
+            <div className="flex items-center justify-end gap-3 pt-2">
               <button
                 onClick={() => setSelectedProvider(null)}
-                className="flex-1 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold hover:bg-slate-50"
+                className="px-4 py-2 rounded-xl border border-slate-700 text-slate-300 text-xs font-semibold hover:bg-slate-800"
               >
                 Cancel
               </button>
               <button
                 onClick={handleApplyPenalty}
-                disabled={!penaltyReason.trim() || processing}
-                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs disabled:opacity-50"
+                disabled={processing || !penaltyReason.trim()}
+                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-all shadow-md shadow-rose-600/30"
               >
-                Confirm Escalation
+                Confirm Sanction
               </button>
             </div>
           </div>

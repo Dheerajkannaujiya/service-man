@@ -148,7 +148,8 @@ exports.register = async (req, res, next) => {
  */
 exports.login = async (req, res, next) => {
   try {
-    const { emailOrPhone, password } = req.body;
+    const emailOrPhone = req.body.emailOrPhone || req.body.email || req.body.phone;
+    const { password } = req.body;
 
     if (!emailOrPhone || !password) {
       return res.status(400).json({

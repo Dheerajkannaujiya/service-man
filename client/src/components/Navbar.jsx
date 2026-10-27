@@ -14,7 +14,8 @@ import {
   LayoutDashboard,
   Calendar,
   DollarSign,
-  AlertOctagon
+  AlertOctagon,
+  Sparkles
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
@@ -37,58 +38,58 @@ export default function Navbar() {
 
   return (
     <>
-      <nav className="sticky top-0 z-[100] bg-white/90 backdrop-blur-md border-b border-slate-200">
+      <nav className="sticky top-0 z-[100] bg-[#0B0F19]/85 backdrop-blur-xl border-b border-slate-800/80 text-slate-100 transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             {/* Left: Brand & City Selector */}
             <div className="flex items-center gap-6">
-              <Link to="/" className="flex items-center gap-2 group">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-blue-500 flex items-center justify-center text-white shadow-md shadow-brand-500/20 group-hover:scale-105 transition-transform">
-                  <Wrench size={20} className="rotate-[-10deg]" />
+              <Link to="/" className="flex items-center gap-2.5 group">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-lg shadow-indigo-500/25 group-hover:scale-105 group-hover:shadow-indigo-500/40 transition-all">
+                  <Wrench size={20} className="rotate-[-10deg] group-hover:rotate-0 transition-transform" />
                 </div>
                 <div className="flex flex-col">
-                  <span className="font-extrabold text-lg leading-tight tracking-tight text-slate-900 flex items-center gap-1">
-                    Service<span className="text-brand-600">Man</span>
+                  <span className="font-extrabold text-lg leading-tight tracking-tight text-white flex items-center gap-1 font-['Outfit']">
+                    Service<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-cyan-400">Man</span>
                   </span>
-                  <span className="text-[10px] font-semibold text-slate-400 tracking-wider uppercase">
-                    On-Demand Platform
+                  <span className="text-[9px] font-semibold text-slate-400 tracking-wider uppercase flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> On-Demand Network
                   </span>
                 </div>
               </Link>
 
               {/* City Selector Pill */}
-              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200 transition-colors">
-                <MapPin size={13} className="text-brand-600" />
+              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-slate-300 text-xs font-medium hover:border-slate-700 transition-colors">
+                <MapPin size={13} className="text-indigo-400" />
                 <select
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
-                  className="bg-transparent border-none outline-none cursor-pointer pr-1"
+                  className="bg-transparent border-none outline-none cursor-pointer pr-1 text-slate-200 text-xs font-semibold"
                 >
-                  <option value="Noida">Noida (NCR)</option>
-                  <option value="Delhi">Delhi</option>
-                  <option value="Gurugram">Gurugram</option>
-                  <option value="Ghaziabad">Ghaziabad</option>
-                  <option value="Faridabad">Faridabad</option>
-                  <option value="Meerut">Meerut</option>
+                  <option value="Noida" className="bg-slate-900 text-slate-200">Noida (NCR)</option>
+                  <option value="Delhi" className="bg-slate-900 text-slate-200">Delhi</option>
+                  <option value="Gurugram" className="bg-slate-900 text-slate-200">Gurugram</option>
+                  <option value="Ghaziabad" className="bg-slate-900 text-slate-200">Ghaziabad</option>
+                  <option value="Faridabad" className="bg-slate-900 text-slate-200">Faridabad</option>
+                  <option value="Meerut" className="bg-slate-900 text-slate-200">Meerut</option>
                 </select>
               </div>
             </div>
 
             {/* Middle: Navigation Links based on Role */}
-            <div className="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-600">
-              <Link to="/services" className="hover:text-brand-600 transition-colors">
-                Services
+            <div className="hidden lg:flex items-center gap-6 text-xs font-semibold text-slate-300">
+              <Link to="/services" className="hover:text-indigo-400 transition-colors">
+                Services Catalog
               </Link>
-              <Link to="/how-it-works" className="hover:text-brand-600 transition-colors">
+              <Link to="/how-it-works" className="hover:text-indigo-400 transition-colors">
                 How It Works
               </Link>
 
               {isCustomer && (
                 <>
-                  <Link to="/customer/dashboard" className="text-brand-600 flex items-center gap-1">
+                  <Link to="/customer/dashboard" className="text-indigo-400 flex items-center gap-1 hover:text-indigo-300 transition-colors">
                     <LayoutDashboard size={14} /> Customer Hub
                   </Link>
-                  <Link to="/customer/bookings" className="hover:text-brand-600 flex items-center gap-1">
+                  <Link to="/customer/bookings" className="hover:text-indigo-400 flex items-center gap-1 transition-colors">
                     <Calendar size={14} /> My Bookings
                   </Link>
                 </>
@@ -96,28 +97,28 @@ export default function Navbar() {
 
               {isProvider && (
                 <>
-                  <Link to="/provider/dashboard" className="text-brand-600 flex items-center gap-1">
+                  <Link to="/provider/dashboard" className="text-indigo-400 flex items-center gap-1 hover:text-indigo-300 transition-colors">
                     <Briefcase size={14} /> Provider Hub
                   </Link>
-                  <Link to="/provider/kyc" className="hover:text-brand-600 flex items-center gap-1">
-                    <ShieldCheck size={14} /> KYC Verification
+                  <Link to="/provider/kyc" className="hover:text-indigo-400 flex items-center gap-1 transition-colors">
+                    <ShieldCheck size={14} /> KYC Desk
                   </Link>
-                  <Link to="/provider/earnings" className="hover:text-brand-600 flex items-center gap-1">
-                    <DollarSign size={14} /> Earnings
+                  <Link to="/provider/earnings" className="hover:text-indigo-400 flex items-center gap-1 transition-colors">
+                    <DollarSign size={14} /> Earnings & Ledger
                   </Link>
                 </>
               )}
 
               {isAdmin && (
                 <>
-                  <Link to="/admin/dashboard" className="text-brand-600 flex items-center gap-1">
+                  <Link to="/admin/dashboard" className="text-indigo-400 flex items-center gap-1 hover:text-indigo-300 transition-colors">
                     <LayoutDashboard size={14} /> Admin HQ
                   </Link>
-                  <Link to="/admin/kyc-desk" className="hover:text-brand-600 flex items-center gap-1">
+                  <Link to="/admin/kyc-desk" className="hover:text-indigo-400 flex items-center gap-1 transition-colors">
                     <ShieldCheck size={14} /> KYC Queue
                   </Link>
-                  <Link to="/admin/complaints" className="hover:text-brand-600 flex items-center gap-1">
-                    <AlertOctagon size={14} /> Complaints &amp; Penalties
+                  <Link to="/admin/complaints" className="hover:text-indigo-400 flex items-center gap-1 transition-colors">
+                    <AlertOctagon size={14} /> Complaints
                   </Link>
                 </>
               )}
@@ -130,12 +131,12 @@ export default function Navbar() {
                   {/* Notification Bell */}
                   <button
                     onClick={() => setShowNotifications(true)}
-                    className="relative p-2 rounded-xl text-slate-600 hover:text-brand-600 hover:bg-slate-100 transition-colors"
+                    className="relative p-2 rounded-xl text-slate-400 hover:text-indigo-400 hover:bg-slate-800/60 transition-colors border border-transparent hover:border-slate-800"
                     title="Notifications"
                   >
                     <Bell size={18} />
                     {unreadNotifications > 0 && (
-                      <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-500 border-2 border-white animate-pulse"></span>
+                      <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.8)] animate-pulse"></span>
                     )}
                   </button>
 
@@ -143,18 +144,18 @@ export default function Navbar() {
                   <div className="relative">
                     <button
                       onClick={() => setShowUserMenu(!showUserMenu)}
-                      className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
+                      className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-800/60 border border-slate-800/60 hover:border-slate-700 transition-all"
                     >
                       <img
                         src={user?.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=80&q=80'}
                         alt={user?.name}
-                        className="w-8 h-8 rounded-lg object-cover border border-slate-200"
+                        className="w-8 h-8 rounded-lg object-cover border border-slate-700 shadow-sm"
                       />
                       <div className="hidden sm:flex flex-col text-left">
-                        <span className="text-xs font-bold text-slate-800 leading-none truncate max-w-[120px]">
+                        <span className="text-xs font-bold text-slate-100 leading-none truncate max-w-[120px]">
                           {user?.name}
                         </span>
-                        <span className="text-[10px] uppercase font-semibold tracking-wider text-brand-600 mt-0.5">
+                        <span className="text-[10px] uppercase font-bold tracking-wider text-indigo-400 mt-0.5">
                           {user?.role}
                         </span>
                       </div>
@@ -162,46 +163,48 @@ export default function Navbar() {
                     </button>
 
                     {showUserMenu && (
-                      <div className="absolute right-0 mt-2 w-52 bg-white rounded-2xl shadow-xl border border-slate-200 py-1.5 z-50 animate-in fade-in zoom-in-95 duration-150">
-                        <div className="px-4 py-2 border-b border-slate-100">
-                          <p className="text-xs font-bold text-slate-800">{user?.name}</p>
+                      <div className="absolute right-0 mt-2 w-56 bg-slate-900/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-800 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+                        <div className="px-4 py-2.5 border-b border-slate-800">
+                          <p className="text-xs font-bold text-white">{user?.name}</p>
                           <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
                         </div>
 
-                        {isCustomer && (
-                          <Link
-                            to="/customer/dashboard"
-                            onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                          >
-                            <LayoutDashboard size={14} /> Customer Hub
-                          </Link>
-                        )}
+                        <div className="py-1">
+                          {isCustomer && (
+                            <Link
+                              to="/customer/dashboard"
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                            >
+                              <LayoutDashboard size={14} className="text-indigo-400" /> Customer Hub
+                            </Link>
+                          )}
 
-                        {isProvider && (
-                          <Link
-                            to="/provider/dashboard"
-                            onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                          >
-                            <Briefcase size={14} /> Provider Hub
-                          </Link>
-                        )}
+                          {isProvider && (
+                            <Link
+                              to="/provider/dashboard"
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                            >
+                              <Briefcase size={14} className="text-indigo-400" /> Provider Hub
+                            </Link>
+                          )}
 
-                        {isAdmin && (
-                          <Link
-                            to="/admin/dashboard"
-                            onClick={() => setShowUserMenu(false)}
-                            className="flex items-center gap-2 px-4 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50"
-                          >
-                            <LayoutDashboard size={14} /> Admin HQ
-                          </Link>
-                        )}
+                          {isAdmin && (
+                            <Link
+                              to="/admin/dashboard"
+                              onClick={() => setShowUserMenu(false)}
+                              className="flex items-center gap-2.5 px-4 py-2 text-xs font-medium text-slate-300 hover:text-white hover:bg-slate-800/80 transition-colors"
+                            >
+                              <LayoutDashboard size={14} className="text-indigo-400" /> Admin HQ
+                            </Link>
+                          )}
+                        </div>
 
                         {/* 1-Click Role Switcher */}
-                        <div className="px-3 py-2 bg-slate-50 border-t border-b border-slate-100 space-y-1.5">
-                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                            Switch Role (1-Click)
+                        <div className="px-3 py-2.5 bg-slate-950/60 border-t border-b border-slate-800/80 space-y-1.5">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 flex items-center gap-1 tracking-wider">
+                            <Sparkles size={11} className="text-indigo-400" /> Switch Role (1-Click)
                           </span>
                           <div className="grid grid-cols-3 gap-1">
                             <button
@@ -211,10 +214,10 @@ export default function Navbar() {
                                 setShowUserMenu(false);
                                 navigate('/customer/dashboard');
                               }}
-                              className={`py-1 text-[10px] rounded-lg font-bold transition-all ${
+                              className={`py-1.5 text-[10px] rounded-lg font-bold transition-all ${
                                 isCustomer
-                                  ? 'bg-brand-600 text-white shadow-sm'
-                                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                  : 'bg-slate-800 text-slate-300 border border-slate-700/60 hover:bg-slate-700'
                               }`}
                             >
                               Customer
@@ -226,10 +229,10 @@ export default function Navbar() {
                                 setShowUserMenu(false);
                                 navigate('/provider/dashboard');
                               }}
-                              className={`py-1 text-[10px] rounded-lg font-bold transition-all ${
+                              className={`py-1.5 text-[10px] rounded-lg font-bold transition-all ${
                                 isProvider
-                                  ? 'bg-brand-600 text-white shadow-sm'
-                                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                  : 'bg-slate-800 text-slate-300 border border-slate-700/60 hover:bg-slate-700'
                               }`}
                             >
                               Provider
@@ -241,10 +244,10 @@ export default function Navbar() {
                                 setShowUserMenu(false);
                                 navigate('/admin/dashboard');
                               }}
-                              className={`py-1 text-[10px] rounded-lg font-bold transition-all ${
+                              className={`py-1.5 text-[10px] rounded-lg font-bold transition-all ${
                                 isAdmin
-                                  ? 'bg-brand-600 text-white shadow-sm'
-                                  : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-100'
+                                  ? 'bg-indigo-600 text-white shadow-md shadow-indigo-600/30'
+                                  : 'bg-slate-800 text-slate-300 border border-slate-700/60 hover:bg-slate-700'
                               }`}
                             >
                               Admin
@@ -254,7 +257,7 @@ export default function Navbar() {
 
                         <button
                           onClick={handleLogout}
-                          className="w-full flex items-center gap-2 px-4 py-2 text-xs font-medium text-rose-600 hover:bg-rose-50 transition-colors text-left"
+                          className="w-full flex items-center gap-2.5 px-4 py-2 text-xs font-semibold text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors text-left"
                         >
                           <LogOut size={14} /> Sign Out
                         </button>
@@ -263,18 +266,18 @@ export default function Navbar() {
                   </div>
                 </>
               ) : (
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2.5">
                   <Link
                     to="/login"
-                    className="px-3.5 py-1.5 text-xs font-semibold text-slate-700 hover:text-brand-600 transition-colors"
+                    className="px-4 py-2 text-xs font-semibold text-slate-300 hover:text-white transition-colors"
                   >
                     Sign In
                   </Link>
                   <Link
                     to="/register"
-                    className="px-4 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition-colors"
+                    className="px-4 py-2 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white text-xs font-bold shadow-lg shadow-indigo-500/25 transition-all hover:scale-105"
                   >
-                    Join ServiceMan
+                    Get Started Free
                   </Link>
                 </div>
               )}
@@ -282,7 +285,7 @@ export default function Navbar() {
               {/* Mobile hamburger */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="lg:hidden p-2 rounded-lg text-slate-600 hover:bg-slate-100"
+                className="lg:hidden p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               >
                 {mobileMenuOpen ? <X size={20} /> : <Menu size={20} />}
               </button>
@@ -292,18 +295,18 @@ export default function Navbar() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="lg:hidden px-4 pt-2 pb-4 space-y-2 border-t border-slate-100 bg-white">
+          <div className="lg:hidden px-4 pt-2 pb-5 space-y-2 border-t border-slate-800 bg-[#0B0F19]/95 backdrop-blur-xl">
             <Link
               to="/services"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-xs font-semibold text-slate-700"
+              className="block py-2 text-xs font-semibold text-slate-300 hover:text-white"
             >
-              Services
+              Services Catalog
             </Link>
             <Link
               to="/how-it-works"
               onClick={() => setMobileMenuOpen(false)}
-              className="block py-2 text-xs font-semibold text-slate-700"
+              className="block py-2 text-xs font-semibold text-slate-300 hover:text-white"
             >
               How It Works
             </Link>
@@ -311,7 +314,7 @@ export default function Navbar() {
               <Link
                 to="/customer/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-xs font-semibold text-brand-600"
+                className="block py-2 text-xs font-bold text-indigo-400"
               >
                 Customer Hub
               </Link>
@@ -320,7 +323,7 @@ export default function Navbar() {
               <Link
                 to="/provider/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-xs font-semibold text-brand-600"
+                className="block py-2 text-xs font-bold text-indigo-400"
               >
                 Provider Hub
               </Link>
@@ -329,7 +332,7 @@ export default function Navbar() {
               <Link
                 to="/admin/dashboard"
                 onClick={() => setMobileMenuOpen(false)}
-                className="block py-2 text-xs font-semibold text-brand-600"
+                className="block py-2 text-xs font-bold text-indigo-400"
               >
                 Admin HQ
               </Link>
