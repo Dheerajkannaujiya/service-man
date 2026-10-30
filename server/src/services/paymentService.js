@@ -1,3 +1,5 @@
+const path = require('path');
+const dotenv = require('dotenv');
 const crypto = require('crypto');
 const Razorpay = require('razorpay');
 const config = require('../config/env');
@@ -6,11 +8,37 @@ const Booking = require('../models/Booking');
 const Provider = require('../models/Provider');
 const Notification = require('../models/Notification');
 
-function getRazorpayClient() {
-  const keyId = process.env.RAZORPAY_KEY_ID || config.RAZORPAY_KEY_ID;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET || config.RAZORPAY_KEY_SECRET;
+// Helper to read latest keys from server/.env dynamically
+function getLoadedKeys() {
+  try {
+    const envPath = path.resolve(__dirname, '../../.env');
+    const result = dotenv.config({ path: envPath });
+    const parsed = result.parsed || {};
 
-  if (keyId && keySecret && !keyId.includes('serviceman2026')) {
+    const keyId =
+      parsed.RAZORPAY_KEY_ID ||
+      process.env.RAZORPAY_KEY_ID ||
+      config.RAZORPAY_KEY_ID ||
+      '';
+    const keySecret =
+      parsed.RAZORPAY_KEY_SECRET ||
+      process.env.RAZORPAY_KEY_SECRET ||
+      config.RAZORPAY_KEY_SECRET ||
+      '';
+
+    return { keyId, keySecret };
+  } catch (e) {
+    return {
+      keyId: process.env.RAZORPAY_KEY_ID || config.RAZORPAY_KEY_ID || '',
+      keySecret: process.env.RAZORPAY_KEY_SECRET || config.RAZORPAY_KEY_SECRET || ''
+    };
+  }
+}
+
+function getRazorpayClient() {
+  const { keyId, keySecret } = getLoadedKeys();
+
+  if (keyId && keySecret && !keyId.includes('serviceman2026') && keyId.startsWith('rzp_')) {
     try {
       return new Razorpay({
         key_id: keyId,
@@ -43,6 +71,7 @@ async function createPaymentOrder(bookingId, customerUserId, amount) {
         notes: { bookingId: booking._id.toString(), customerId: customerUserId.toString() }
       });
       razorpayOrderId = order.id;
+      console.log(`[Razorpay API] Real order generated: ${order.id} for ₹${amount}`);
     } catch (apiErr) {
       console.warn('[Payment] Razorpay order creation failed, falling back to simulated order:', apiErr.message);
     }
@@ -58,7 +87,8 @@ async function createPaymentOrder(bookingId, customerUserId, amount) {
     razorpayOrderId
   });
 
-  const activeKeyId = process.env.RAZORPAY_KEY_ID || config.RAZORPAY_KEY_ID || 'rzp_test_serviceman2026';
+  const { keyId } = getLoadedKeys();
+  const activeKeyId = keyId || 'rzp_test_serviceman2026';
 
   return {
     paymentId: payment._id,
@@ -77,7 +107,7 @@ async function verifyAndCapturePayment(paymentId, { razorpayOrderId, razorpayPay
   if (!payment) throw new Error('Payment record not found');
 
   let isValidSignature = true;
-  const keySecret = process.env.RAZORPAY_KEY_SECRET || config.RAZORPAY_KEY_SECRET;
+  const { keySecret } = getLoadedKeys();
 
   if (keySecret && razorpaySignature && razorpaySignature !== 'simulated_valid_signature') {
     try {
