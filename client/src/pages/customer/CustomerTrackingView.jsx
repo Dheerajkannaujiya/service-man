@@ -478,20 +478,6 @@ export default function CustomerTrackingView() {
         isOpen={chatOpen}
         onClose={() => setChatOpen(false)}
       />
-
-      {/* Razorpay QR & UPI Checkout Modal */}
-      <RazorpayModal
-        isOpen={paymentModalOpen}
-        onClose={() => setPaymentModalOpen(false)}
-        booking={paymentModalData?.booking || booking}
-        orderData={paymentModalData?.orderData}
-        user={user}
-        onSuccess={() => {
-          setPaymentDone(true);
-          setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
-          loadBooking();
-        }}
-      />
     </div>
   );
 }
