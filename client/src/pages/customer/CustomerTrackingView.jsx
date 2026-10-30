@@ -26,6 +26,7 @@ import TrustBadge from '../../components/TrustBadge';
 import ChatDrawer from '../../components/ChatDrawer';
 import StarRating from '../../components/StarRating';
 import { processRazorpayPayment } from '../../services/razorpayService';
+import RazorpayModal from '../../components/RazorpayModal';
 
 export default function CustomerTrackingView() {
   const { bookingId } = useParams();
@@ -38,6 +39,8 @@ export default function CustomerTrackingView() {
   const [chatOpen, setChatOpen] = useState(false);
   const [paying, setPaying] = useState(false);
   const [paymentDone, setPaymentDone] = useState(false);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentModalData, setPaymentModalData] = useState(null);
 
   // Review modal
   const [showReviewModal, setShowReviewModal] = useState(false);
@@ -151,6 +154,10 @@ export default function CustomerTrackingView() {
         booking,
         user,
         forceSimulation,
+        onOpenModal: (data) => {
+          setPaymentModalData(data);
+          setPaymentModalOpen(true);
+        },
         onSuccess: (data) => {
           setPaymentDone(true);
           setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
@@ -477,6 +484,20 @@ export default function CustomerTrackingView() {
         recipientName={booking.providerId?.name}
         isOpen={chatOpen}
         onClose={() => setChatOpen(false)}
+      />
+
+      {/* Razorpay QR & UPI Checkout Modal */}
+      <RazorpayModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        booking={paymentModalData?.booking || booking}
+        orderData={paymentModalData?.orderData}
+        user={user}
+        onSuccess={() => {
+          setPaymentDone(true);
+          setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
+          loadBooking();
+        }}
       />
     </div>
   );

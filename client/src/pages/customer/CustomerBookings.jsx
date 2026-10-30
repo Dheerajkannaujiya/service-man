@@ -7,6 +7,7 @@ import StatusBadge from '../../components/StatusBadge';
 import StarRating from '../../components/StarRating';
 import ChatDrawer from '../../components/ChatDrawer';
 import { processRazorpayPayment } from '../../services/razorpayService';
+import RazorpayModal from '../../components/RazorpayModal';
 
 export default function CustomerBookings() {
   const [bookings, setBookings] = useState([]);
@@ -25,6 +26,8 @@ export default function CustomerBookings() {
 
   const { user } = useAuth();
   const [payingBookingId, setPayingBookingId] = useState(null);
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentModalData, setPaymentModalData] = useState(null);
 
   const handlePayBooking = async (b) => {
     setPayingBookingId(b._id);
@@ -32,6 +35,10 @@ export default function CustomerBookings() {
       await processRazorpayPayment({
         booking: b,
         user,
+        onOpenModal: (data) => {
+          setPaymentModalData(data);
+          setPaymentModalOpen(true);
+        },
         onSuccess: () => {
           alert(`Payment for #${b.bookingNumber} captured successfully via Razorpay!`);
           fetchBookings();
@@ -370,6 +377,18 @@ export default function CustomerBookings() {
           onClose={() => setChatBooking(null)}
         />
       )}
+
+      {/* Razorpay QR & UPI Checkout Modal */}
+      <RazorpayModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        booking={paymentModalData?.booking}
+        orderData={paymentModalData?.orderData}
+        user={user}
+        onSuccess={() => {
+          fetchBookings();
+        }}
+      />
     </div>
   );
 }

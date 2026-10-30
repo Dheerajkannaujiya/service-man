@@ -38,6 +38,7 @@ export const processRazorpayPayment = async ({
   user,
   onSuccess,
   onError,
+  onOpenModal,
   forceSimulation = false
 }) => {
   try {
@@ -129,7 +130,13 @@ export const processRazorpayPayment = async ({
       });
     }
 
-    // 4. Sandbox Simulation Fallback (runs if keys are placeholder or for fast testing)
+    // 4. Open Interactive Gateway Modal if available (shows QR Code, UPI apps, Card)
+    if (onOpenModal) {
+      onOpenModal({ orderData, booking, user });
+      return { success: true, modalOpened: true };
+    }
+
+    // 5. Headless Sandbox Simulation Fallback (only if no modal UI requested)
     const verifyRes = await api.post('/payments/verify', {
       paymentId: orderData.paymentId || `pay_${Date.now()}`,
       razorpayOrderId: orderData.razorpayOrderId || `order_${Date.now()}`,

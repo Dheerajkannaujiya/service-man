@@ -35,6 +35,7 @@ import MapTracker from '../../components/MapTracker';
 import ChatDrawer from '../../components/ChatDrawer';
 import { INITIAL_SERVICES } from '../../services/mockData';
 import { processRazorpayPayment } from '../../services/razorpayService';
+import RazorpayModal from '../../components/RazorpayModal';
 
 export default function CustomerDashboard() {
   const navigate = useNavigate();
@@ -69,6 +70,8 @@ export default function CustomerDashboard() {
   // Payment state
   const [payingBooking, setPayingBooking] = useState(false);
   const [paymentSuccessMsg, setPaymentSuccessMsg] = useState('');
+  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
+  const [paymentModalData, setPaymentModalData] = useState(null);
 
   const handlePayActiveBooking = async () => {
     if (!activeBooking) return;
@@ -78,6 +81,10 @@ export default function CustomerDashboard() {
       await processRazorpayPayment({
         booking: activeBooking,
         user,
+        onOpenModal: (data) => {
+          setPaymentModalData(data);
+          setPaymentModalOpen(true);
+        },
         onSuccess: () => {
           setPaymentSuccessMsg('Payment successfully captured via Razorpay Escrow!');
           setActiveBooking((prev) => (prev ? { ...prev, paymentStatus: 'completed' } : null));
@@ -736,6 +743,20 @@ export default function CustomerDashboard() {
           onClose={() => setChatOpen(false)}
         />
       )}
+
+      {/* Razorpay QR & UPI Checkout Modal */}
+      <RazorpayModal
+        isOpen={paymentModalOpen}
+        onClose={() => setPaymentModalOpen(false)}
+        booking={paymentModalData?.booking || activeBooking}
+        orderData={paymentModalData?.orderData}
+        user={user}
+        onSuccess={() => {
+          setPaymentSuccessMsg('Payment successfully captured via Razorpay Escrow!');
+          setActiveBooking((prev) => (prev ? { ...prev, paymentStatus: 'completed' } : null));
+          loadDashboardData();
+        }}
+      />
     </div>
   );
 }
