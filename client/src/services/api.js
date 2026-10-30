@@ -24,7 +24,7 @@ let isBackendOnline = false;
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('serviceman_token');
-    if (token) {
+    if (token && token !== 'null' && token !== 'undefined' && token.trim() !== '') {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -65,6 +65,7 @@ api.interceptors.response.use(
       // Token truly invalid or unauthorized on live server
       localStorage.removeItem('serviceman_token');
       localStorage.removeItem('serviceman_user');
+      window.dispatchEvent(new Event('auth:unauthorized'));
     }
 
     return Promise.reject(error);

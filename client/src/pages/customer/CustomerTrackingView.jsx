@@ -25,6 +25,7 @@ import StatusBadge from '../../components/StatusBadge';
 import TrustBadge from '../../components/TrustBadge';
 import ChatDrawer from '../../components/ChatDrawer';
 import StarRating from '../../components/StarRating';
+import { processRazorpayPayment } from '../../services/razorpayService';
 
 export default function CustomerTrackingView() {
   const { bookingId } = useParams();
@@ -146,86 +147,23 @@ export default function CustomerTrackingView() {
   const handlePayNow = async (forceSimulation = false) => {
     setPaying(true);
     try {
-      // 1. Create Order on backend
-      const orderRes = await api.post('/payments/create-order', {
-        bookingId: booking._id,
-        amount: booking.finalPrice || booking.estimatedPrice
-      });
-
-      if (!orderRes.data.success) {
-        throw new Error(orderRes.data.message || 'Could not initialize payment order');
-      }
-
-      const orderData = orderRes.data.order;
-      const keyId = orderData.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
-
-      // If Razorpay SDK is loaded and we have a valid key (not simulated order)
-      if (
-        !forceSimulation &&
-        window.Razorpay &&
-        keyId &&
-        !keyId.includes('serviceman2026') &&
-        !orderData.razorpayOrderId.startsWith('order_sim_')
-      ) {
-        const rzpOptions = {
-          key: keyId,
-          amount: Math.round(orderData.amount * 100),
-          currency: orderData.currency || 'INR',
-          name: 'ServiceMan Marketplace',
-          description: `Payment for #${booking.bookingNumber || booking._id.slice(-6)}`,
-          image: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&w=100&q=80',
-          order_id: orderData.razorpayOrderId,
-          handler: async function (response) {
-            try {
-              const verifyRes = await api.post('/payments/verify', {
-                paymentId: orderData.paymentId,
-                razorpayOrderId: response.razorpay_order_id || orderData.razorpayOrderId,
-                razorpayPaymentId: response.razorpay_payment_id,
-                razorpaySignature: response.razorpay_signature
-              });
-
-              if (verifyRes.data.success) {
-                setPaymentDone(true);
-                setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
-                loadBooking();
-              }
-            } catch (vErr) {
-              alert('Payment verification failed: ' + (vErr.response?.data?.message || vErr.message));
-            }
-          },
-          prefill: {
-            name: user?.name || 'Customer',
-            email: user?.email || 'customer@serviceman.com',
-            contact: user?.phone || '+919876543210'
-          },
-          theme: {
-            color: '#4f46e5'
+      await processRazorpayPayment({
+        booking,
+        user,
+        forceSimulation,
+        onSuccess: (data) => {
+          setPaymentDone(true);
+          setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
+          loadBooking();
+        },
+        onError: (err) => {
+          if (!err.message?.includes('closed by user')) {
+            alert('Razorpay Payment Error: ' + err.message);
           }
-        };
-
-        const rzpInstance = new window.Razorpay(rzpOptions);
-        rzpInstance.on('payment.failed', function (resp) {
-          alert('Razorpay Payment failed: ' + resp.error.description);
-        });
-        rzpInstance.open();
-        return;
-      }
-
-      // Fast Sandbox Simulation Fallback (Plug-and-Play Test Mode)
-      const verifyRes = await api.post('/payments/verify', {
-        paymentId: orderData.paymentId || `pay_${Date.now()}`,
-        razorpayOrderId: orderData.razorpayOrderId || `order_${Date.now()}`,
-        razorpayPaymentId: `pay_test_${Date.now()}`,
-        razorpaySignature: 'simulated_valid_signature'
+        }
       });
-
-      if (verifyRes.data.success) {
-        setPaymentDone(true);
-        setBooking((prev) => ({ ...prev, paymentStatus: 'completed' }));
-        loadBooking();
-      }
     } catch (err) {
-      alert(err.response?.data?.message || err.message || 'Payment processing error');
+      alert(err.message || 'Payment processing error');
     } finally {
       setPaying(false);
     }

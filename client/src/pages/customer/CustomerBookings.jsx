@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, CheckCircle, XCircle, Star, ArrowLeft, Receipt, MessageSquare, CreditCard } from 'lucide-react';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 import StatusBadge from '../../components/StatusBadge';
 import StarRating from '../../components/StarRating';
 import ChatDrawer from '../../components/ChatDrawer';
+import { processRazorpayPayment } from '../../services/razorpayService';
 
 export default function CustomerBookings() {
   const [bookings, setBookings] = useState([]);
@@ -21,8 +23,31 @@ export default function CustomerBookings() {
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewResult, setReviewResult] = useState(null);
 
-  // Chat
-  const [chatBooking, setChatBooking] = useState(null);
+  const { user } = useAuth();
+  const [payingBookingId, setPayingBookingId] = useState(null);
+
+  const handlePayBooking = async (b) => {
+    setPayingBookingId(b._id);
+    try {
+      await processRazorpayPayment({
+        booking: b,
+        user,
+        onSuccess: () => {
+          alert(`Payment for #${b.bookingNumber} captured successfully via Razorpay!`);
+          fetchBookings();
+        },
+        onError: (err) => {
+          if (!err.message?.includes('closed by user')) {
+            alert('Razorpay Payment Error: ' + err.message);
+          }
+        }
+      });
+    } catch (err) {
+      alert(err.message || 'Payment processing error');
+    } finally {
+      setPayingBookingId(null);
+    }
+  };
 
   useEffect(() => {
     fetchBookings();
@@ -187,6 +212,17 @@ export default function CustomerBookings() {
                 </div>
 
                 <div className="flex items-center gap-2">
+                  {!['paid', 'completed'].includes(b.paymentStatus?.toLowerCase()) && (
+                    <button
+                      onClick={() => handlePayBooking(b)}
+                      disabled={payingBookingId === b._id}
+                      className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold flex items-center gap-1.5 shadow-md shadow-indigo-600/30 btn-shimmer disabled:opacity-50"
+                    >
+                      <CreditCard size={13} />
+                      {payingBookingId === b._id ? 'Processing...' : `Pay ₹${b.finalPrice || b.estimatedPrice}`}
+                    </button>
+                  )}
+
                   {['SERVICE_COMPLETED', 'CUSTOMER_REVIEWED', 'CLOSED'].includes(b.status) && (
                     <button
                       onClick={() => setReviewBooking(b)}

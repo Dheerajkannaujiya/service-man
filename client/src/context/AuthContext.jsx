@@ -23,31 +23,47 @@ export const AuthProvider = ({ children }) => {
       const storedToken = localStorage.getItem('serviceman_token');
       const storedUser = localStorage.getItem('serviceman_user');
 
-      if (storedUser && !user) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch (e) {}
+      // If token is missing, clear any stale user data to prevent zombie sessions
+      if (!storedToken || !storedUser) {
+        setUser(null);
+        setToken('');
+        localStorage.removeItem('serviceman_token');
+        localStorage.removeItem('serviceman_user');
+        setLoading(false);
+        return;
       }
 
-      if (storedToken) {
-        try {
-          const res = await api.get('/auth/me');
-          if (res.data.success && res.data.user) {
-            setUser(res.data.user);
-            localStorage.setItem('serviceman_user', JSON.stringify(res.data.user));
-          }
-        } catch (err) {
-          console.warn('[Auth] Session check fallback:', err.message);
-          // If offline and we have stored user, keep user logged in
-          if (!storedUser) {
-            logout();
-          }
+      try {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+        setToken(storedToken);
+
+        const res = await api.get('/auth/me');
+        if (res.data?.success && res.data?.user) {
+          setUser(res.data.user);
+          localStorage.setItem('serviceman_user', JSON.stringify(res.data.user));
         }
+      } catch (err) {
+        console.warn('[Auth] Session check failed:', err.message);
+        if (err.response?.status === 401) {
+          logout();
+        }
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
 
     initializeAuth();
+
+    // Listen for 401 unauthorized events from API interceptor
+    const handleUnauthorized = () => {
+      setUser(null);
+      setToken('');
+      localStorage.removeItem('serviceman_token');
+      localStorage.removeItem('serviceman_user');
+    };
+    window.addEventListener('auth:unauthorized', handleUnauthorized);
+    return () => window.removeEventListener('auth:unauthorized', handleUnauthorized);
   }, []);
 
   const login = async (emailOrPhone, password) => {
@@ -114,7 +130,7 @@ export const AuthProvider = ({ children }) => {
     user,
     token,
     loading,
-    isAuthenticated: !!user,
+    isAuthenticated: Boolean(user && token),
     isCustomer: user?.role === 'customer',
     isProvider: user?.role === 'provider',
     isAdmin: user?.role === 'admin',

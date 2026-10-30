@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import {
   Wrench,
   Zap,
@@ -34,9 +34,11 @@ import StarRating from '../../components/StarRating';
 import MapTracker from '../../components/MapTracker';
 import ChatDrawer from '../../components/ChatDrawer';
 import { INITIAL_SERVICES } from '../../services/mockData';
+import { processRazorpayPayment } from '../../services/razorpayService';
 
 export default function CustomerDashboard() {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, token } = useAuth();
   const { socket } = useSocket();
   const [searchParams] = useSearchParams();
 
@@ -63,6 +65,36 @@ export default function CustomerDashboard() {
   const [reviewComment, setReviewComment] = useState('');
   const [submittingReview, setSubmittingReview] = useState(false);
   const [reviewSuccess, setReviewSuccess] = useState('');
+
+  // Payment state
+  const [payingBooking, setPayingBooking] = useState(false);
+  const [paymentSuccessMsg, setPaymentSuccessMsg] = useState('');
+
+  const handlePayActiveBooking = async () => {
+    if (!activeBooking) return;
+    setPayingBooking(true);
+    setPaymentSuccessMsg('');
+    try {
+      await processRazorpayPayment({
+        booking: activeBooking,
+        user,
+        onSuccess: () => {
+          setPaymentSuccessMsg('Payment successfully captured via Razorpay Escrow!');
+          setActiveBooking((prev) => (prev ? { ...prev, paymentStatus: 'completed' } : null));
+          loadDashboardData();
+        },
+        onError: (err) => {
+          if (!err.message?.includes('closed by user')) {
+            alert('Razorpay Payment Error: ' + err.message);
+          }
+        }
+      });
+    } catch (err) {
+      alert(err.message || 'Payment processing error');
+    } finally {
+      setPayingBooking(false);
+    }
+  };
 
   // Initial load
   useEffect(() => {
@@ -178,6 +210,13 @@ export default function CustomerDashboard() {
     e.preventDefault();
     if (!selectedService || !problemDescription.trim()) return;
 
+    const activeToken = token || localStorage.getItem('serviceman_token');
+    if (!activeToken || !user) {
+      alert('Authentication required: Your login session is missing or expired. Please sign in to book a service.');
+      navigate('/login', { state: { from: '/customer/dashboard' } });
+      return;
+    }
+
     setSubmittingRequest(true);
     try {
       const res = await api.post('/customer/request-service', {
@@ -203,6 +242,11 @@ export default function CustomerDashboard() {
         setTimeout(loadActiveBooking, 1500);
       }
     } catch (err) {
+      if (err.response?.status === 401) {
+        alert('Session expired or unauthorized. Please sign in again.');
+        navigate('/login', { state: { from: '/customer/dashboard' } });
+        return;
+      }
       alert(err.response?.data?.message || 'Failed to submit request');
     } finally {
       setSubmittingRequest(false);
@@ -382,6 +426,30 @@ export default function CustomerDashboard() {
                   <Navigation size={15} /> Full Live Tracker
                 </Link>
               </div>
+
+              {/* Payment Settlement Button if Unpaid & Completed */}
+              {['SERVICE_COMPLETED', 'CUSTOMER_REVIEWED'].includes(activeBooking.status) &&
+                !['paid', 'completed'].includes(activeBooking.paymentStatus?.toLowerCase()) && (
+                  <button
+                    onClick={handlePayActiveBooking}
+                    disabled={payingBooking}
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 via-indigo-500 to-indigo-600 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-indigo-600/30 transition-all btn-shimmer disabled:opacity-50"
+                  >
+                    <CreditCard size={15} />
+                    <span>
+                      {payingBooking
+                        ? 'Connecting Razorpay Gateway...'
+                        : `Pay ₹${activeBooking.finalPrice || activeBooking.estimatedPrice} with Razorpay`}
+                    </span>
+                  </button>
+                )}
+
+              {paymentSuccessMsg && (
+                <div className="p-3 bg-emerald-500/10 text-emerald-300 rounded-xl text-xs text-center font-bold border border-emerald-500/30 flex items-center justify-center gap-1.5">
+                  <CheckCircle2 size={15} className="text-emerald-400" />
+                  <span>{paymentSuccessMsg}</span>
+                </div>
+              )}
 
               {/* Review Prompt if Service Completed */}
               {activeBooking.status === 'SERVICE_COMPLETED' && (
