@@ -10,6 +10,8 @@ const connectDB = async () => {
       autoIndex: true
     });
     console.log(`[Database] MongoDB Connected: ${conn.connection.host}/${conn.connection.name}`);
+    const { ensureDemoData } = require('../utils/ensureDemoData');
+    ensureDemoData().catch(e => console.warn('[Database] Auto-ensure demo data warning:', e.message));
     return conn;
   } catch (error) {
     console.warn(`[Database] Standard MongoDB connection to ${config.MONGODB_URI} failed: ${error.message}`);

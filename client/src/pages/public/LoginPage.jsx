@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Wrench, Lock, Mail, AlertCircle, ArrowRight, UserCheck, Shield, Sparkles } from 'lucide-react';
+import { Wrench, Lock, Mail, AlertCircle, ArrowRight, UserCheck, Shield, Sparkles, HeartPulse } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 
 export default function LoginPage() {
@@ -57,9 +57,7 @@ export default function LoginPage() {
       console.warn('Instant demo login fallback');
       const role = email.includes('admin')
         ? 'admin'
-        : email.includes('electrician')
-        ? 'electrician'
-        : email.includes('provider')
+        : email.includes('electrician') || email.includes('doctor') || email.includes('cleaner') || email.includes('provider')
         ? 'provider'
         : 'customer';
       const user = switchRole ? switchRole(role) : null;
@@ -78,7 +76,7 @@ export default function LoginPage() {
       {/* Background radial glow */}
       <div className="glow-spot-blue top-[10%] left-[20%]"></div>
 
-      <div className="max-w-md w-full space-y-6 relative z-10">
+      <div className="max-w-xl w-full space-y-6 relative z-10">
         {/* Header */}
         <div className="text-center space-y-2">
           <Link to="/" className="inline-flex items-center gap-2.5">
@@ -104,7 +102,7 @@ export default function LoginPage() {
             </span>
           </div>
 
-          <div className="grid grid-cols-2 gap-2 text-xs">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
             <button
               type="button"
               onClick={() => handleQuickLogin('customer@serviceman.com', 'Password123!')}
@@ -124,7 +122,7 @@ export default function LoginPage() {
               <span className="font-bold text-white flex items-center gap-1">
                 <Wrench size={13} className="text-emerald-400" /> Mechanic Pro
               </span>
-              <span className="text-[10px] text-emerald-400 font-semibold mt-1">Verified &amp; Trusted Badge</span>
+              <span className="text-[10px] text-emerald-400 font-semibold mt-1">Vikram (Trusted 92%)</span>
             </button>
 
             <button
@@ -135,7 +133,29 @@ export default function LoginPage() {
               <span className="font-bold text-white flex items-center gap-1">
                 <Wrench size={13} className="text-amber-400" /> Electrician Pro
               </span>
-              <span className="text-[10px] text-amber-400 font-semibold mt-1">1 Quality Warning</span>
+              <span className="text-[10px] text-amber-400 font-semibold mt-1">Amit (1 Warning)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleQuickLogin('doctor@serviceman.com', 'Password123!')}
+              className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-rose-500/50 text-left transition-all flex flex-col justify-between"
+            >
+              <span className="font-bold text-white flex items-center gap-1">
+                <HeartPulse size={13} className="text-rose-400" /> Doctor Pro
+              </span>
+              <span className="text-[10px] text-rose-400 font-semibold mt-1">Dr. Ananya (MBBS, MD)</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleQuickLogin('cleaner@serviceman.com', 'Password123!')}
+              className="p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-slate-200 border border-slate-800 hover:border-sky-500/50 text-left transition-all flex flex-col justify-between"
+            >
+              <span className="font-bold text-white flex items-center gap-1">
+                <Sparkles size={13} className="text-sky-400" /> Cleaner Pro
+              </span>
+              <span className="text-[10px] text-sky-400 font-semibold mt-1">Pooja (KYC Desk)</span>
             </button>
 
             <button
@@ -146,7 +166,7 @@ export default function LoginPage() {
               <span className="font-bold flex items-center gap-1 text-purple-400">
                 <Shield size={13} /> Administrator
               </span>
-              <span className="text-[10px] text-slate-400 mt-1">Full System Control</span>
+              <span className="text-[10px] text-slate-400 mt-1">Aditya (Full Control)</span>
             </button>
           </div>
         </div>

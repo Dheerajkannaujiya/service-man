@@ -332,7 +332,64 @@ async function seedDatabase(options = {}) {
       ratingCount: 2
     });
 
-    // 5. Admin: Aditya Malhotra
+    // 5. Verified Provider: Dr. Ananya Roy (Doctor) - With Trust Badge
+    const doctorUser = await User.create({
+      name: 'Dr. Ananya Roy',
+      email: 'doctor@serviceman.com',
+      phone: '+919844455566',
+      passwordHash: 'Password123!',
+      role: 'provider',
+      avatar: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=150&q=80',
+      address: 'Clinic 3, Max Hospital Complex, Sector 19',
+      city: 'Noida',
+      location: { type: 'Point', coordinates: [77.3312, 28.5772] }
+    });
+
+    await Provider.create({
+      userId: doctorUser._id,
+      categories: ['Doctor'],
+      bio: 'MBBS, MD - General Physician with 10+ years clinical experience. Doorstep home visits, vitals diagnosis, senior citizen care, and preventive health consults.',
+      experienceYears: 10,
+      qualification: 'MBBS, MD (General Medicine) - MCI Registered',
+      hourlyRate: 599,
+      serviceRadiusKm: 25,
+      isOnline: true,
+      isAvailable: true,
+      currentLocation: { type: 'Point', coordinates: [77.3312, 28.5772] },
+      kycStatus: 'verified',
+      trustScore: 96,
+      hasTrustBadge: true,
+      ratingAverage: 4.96,
+      ratingCount: 52,
+      completedBookings: 58,
+      totalEarnings: 38400,
+      pendingPayout: 4600,
+      bankDetails: {
+        accountHolderName: 'Dr. Ananya Roy',
+        accountNumber: '40100456789012',
+        ifscCode: 'ICIC0001234',
+        bankName: 'ICICI Bank Sector 18',
+        upiId: 'dr.ananya@okicici'
+      }
+    });
+
+    await ProviderTrustScore.create({
+      providerId: doctorUser._id,
+      currentScore: 96,
+      factors: {
+        kycScore: 25,
+        ratingScore: 40,
+        completionScore: 20,
+        sentimentBonus: 11,
+        cancellationPenalty: 0,
+        complaintPenalty: 0,
+        fraudPenalty: 0
+      },
+      hasTrustBadge: true,
+      badgeGrantedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+    });
+
+    // 6. Admin: Aditya Malhotra
     const adminUser = await User.create({
       name: 'Aditya Malhotra',
       email: 'admin@serviceman.com',
@@ -388,6 +445,26 @@ async function seedDatabase(options = {}) {
         fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=500&q=80',
         fileName: 'Housekeeping_Cert.pdf',
         status: 'pending'
+      },
+      {
+        providerId: doctorUser._id,
+        documentType: 'degree_certificate',
+        documentNumber: 'MCI-REG-2014-99821',
+        fileUrl: 'https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&w=500&q=80',
+        fileName: 'Medical_Council_Registration.pdf',
+        status: 'verified',
+        reviewedBy: adminUser._id,
+        reviewedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
+      },
+      {
+        providerId: doctorUser._id,
+        documentType: 'aadhaar',
+        documentNumber: 'XXXX-XXXX-3891',
+        fileUrl: 'https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?auto=format&fit=crop&w=500&q=80',
+        fileName: 'Aadhaar_Dr_Ananya.pdf',
+        status: 'verified',
+        reviewedBy: adminUser._id,
+        reviewedAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000)
       }
     ]);
 
@@ -536,10 +613,14 @@ async function seedDatabase(options = {}) {
     console.log('3. Verified Provider (Electrician - 1 Warning):');
     console.log('   Email:    electrician@serviceman.com');
     console.log('   Password: Password123!\n');
-    console.log('4. Pending KYC Provider (Homemaker/Cleaner):');
+    console.log('4. Verified Provider (Doctor - Trusted Badge):');
+    console.log('   Email:    doctor@serviceman.com');
+    console.log('   Password: Password123!');
+    console.log('   Trust:    96% (MBBS, MD Verified)\n');
+    console.log('5. Pending KYC Provider (Homemaker/Cleaner):');
     console.log('   Email:    cleaner@serviceman.com');
     console.log('   Password: Password123!\n');
-    console.log('5. Administrator:');
+    console.log('6. Administrator:');
     console.log('   Email:    admin@serviceman.com');
     console.log('   Password: Admin123!');
     console.log('==================================================\n');
